@@ -1,0 +1,18 @@
+table Date
+
+	column Date
+		dataType: dateTime
+		summarizeBy: none
+		isKey
+
+	column Year
+		dataType: int64
+		summarizeBy: none
+
+	column 'Month Name'
+		dataType: string
+		summarizeBy: none
+
+	partition Date = calculated
+		mode: import
+		source = ADDCOLUMNS(CALENDAR(DATE(2018,1,1), DATE(2024,12,31)), "Year", YEAR([Date]), "Month Name", FORMAT([Date], "MMMM"))

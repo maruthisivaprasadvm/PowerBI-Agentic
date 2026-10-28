@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Power BI Agentic — online</title>
+<!-- speed up the one-time Pyodide runtime fetch -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+<script>(function(){try{var t=localStorage.getItem('pbai-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="topbar glass">
+  <div class="brand">🔗 Power BI Agentic <span class="tag-online">online</span></div>
+  <button id="themeToggle" class="theme-toggle" type="button" title="Switch light / dark theme">
+    <span class="ico">🌙</span><span class="lbl">Dark</span>
+  </button>
+</header>
+
+<main class="shell">
+  <section class="hero">
+    <h1>Read a Power BI model in your browser</h1>
+    <p>Pick your <b>Power BI Project (PBIP)</b> folder — or a <b>.zip</b> of it — and run an agent.
+      Everything runs <b>in your browser</b>; <b>nothing is uploaded</b> to any server.</p>
+  </section>
+
+  <!-- Step 1 · choose model -->
+  <section class="card glass">
+    <div class="step-head"><span class="step-no">1</span>
+      <div><div class="step-kicker">Step 1</div><h2>Choose your PBIP model</h2></div>
+    </div>
+    <div id="drop" class="dropzone">
+      <div class="dz-ic">📂</div>
+      <div class="dz-main">
+        <button id="pickFolder" class="btn primary" type="button">Choose PBIP folder…</button>
+        <span class="or">or</span>
+        <button id="pickZip" class="btn ghost" type="button">Choose a .zip / .pbip…</button>
+      </div>
+      <div class="dz-hint">…or drag &amp; drop a <b>.zip</b> of your PBIP project here.
+        Chrome &amp; Edge give the best folder picker.</div>
+      <input id="folder" type="file" webkitdirectory directory multiple hidden />
+      <input id="zip" type="file" accept=".zip,.pbip" hidden />
+    </div>
+    <div id="chosen" class="chosen-box" hidden></div>
+  </section>
+
+  <!-- Step 2 · run an agent -->
+  <section class="card glass">
+    <div class="step-head"><span class="step-no">2</span>
+      <div><div class="step-kicker">Step 2</div><h2>Run an agent</h2></div>
+    </div>
+    <div class="hint">Runs one at a time, entirely in your browser. The report opens as a
+      self-contained HTML file you can download and share.</div>
+    <div class="agents" id="agents"></div>
+    <div id="status" class="status" hidden></div>
+  </section>
+
+  <section class="card glass note lock">
+    <b>🔒 Private &amp; local.</b> Your Power BI files are read and parsed <b>inside this web page</b>
+    (Python compiled to WebAssembly). They are <b>never sent to, stored on, or transmitted to any
+    server or cloud service</b>. Close the tab and nothing remains.
+  </section>
+
+  <footer class="foot">Powered by the same open parsers as the local Power BI Agentic app · runs via Pyodide (Python → WebAssembly)</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

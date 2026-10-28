@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Power BI Agentic{% endblock %}</title>
+  <!-- set theme before paint to avoid a flash of the wrong theme -->
+  <script>
+    (function(){
+      try{
+        var t = localStorage.getItem('pbai-theme')
+          || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', t);
+      }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <a class="brand" href="{{ url_for('dashboard') }}">
+        <span class="logo">◴</span> Power BI Agentic
+      </a>
+      <nav class="nav">
+        <a href="{{ url_for('dashboard') }}" class="{% block nav_home %}{% endblock %}">Dashboard</a>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Switch light / dark theme" aria-label="Switch theme">
+          <span class="ico" id="themeIco">🌙</span><span class="lbl" id="themeLbl">Dark</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+  <div class="wrap">
+    {% block body %}{% endblock %}
+  </div>
+  <script>
+    (function(){
+      var root = document.documentElement, btn = document.getElementById('themeToggle');
+      var ico = document.getElementById('themeIco'), lbl = document.getElementById('themeLbl');
+      function paint(){
+        var dark = root.getAttribute('data-theme') === 'dark';
+        // the button shows the theme you'll switch TO
+        ico.textContent = dark ? '☀️' : '🌙';
+        lbl.textContent = dark ? 'Light' : 'Dark';
+      }
+      paint();
+      btn.addEventListener('click', function(){
+        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try{ localStorage.setItem('pbai-theme', next); }catch(e){}
+        paint();
+      });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

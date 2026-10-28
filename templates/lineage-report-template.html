@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Data Lineage — {{MODEL_NAME}}</title>
+<script>(function(){try{var t=localStorage.getItem('pbai-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#f6f4f1;--panel:rgba(255,255,255,.66);--panel2:rgba(255,255,255,.46);--ink:#252423;--body:#484644;--muted:#797775;
+    --line:rgba(37,36,35,.14);--accent:#f2c811;--accent-dark:#d9b300;--soft:rgba(242,200,17,.16);
+    --Source:#e66c37;--Table:#5f6b6d;--Column:#197278;--CalculatedColumn:#d9b300;
+    --Measure:#118dff;--Hierarchy:#744ec2;--Visual:#e044a7;--Page:#107c10;
+    --CalculationItem:#6b007b;--Role:#d64550;--FieldParameter:#12239e;
+    --up:#118dff;--down:#e66c37;
+    --grad:linear-gradient(100deg,#f2c811,#efa42a);--glass-brd:rgba(255,255,255,.72);--blur:14px;
+    --shadow:0 8px 28px rgba(37,36,35,.12),0 2px 8px rgba(37,36,35,.08);
+    --font:'Inter',-apple-system,'Segoe UI',system-ui,Arial,sans-serif;
+  }
+  [data-theme="dark"]{
+    --bg:#1b1a19;--panel:rgba(45,44,43,.56);--panel2:rgba(45,44,43,.38);--ink:#f3f2f1;--body:#d2d0ce;--muted:#a19f9d;
+    --line:rgba(255,255,255,.14);--accent:#f2c811;--accent-dark:#ffd633;--soft:rgba(242,200,17,.20);
+    --Source:#f0956a;--Table:#9aa3a6;--Column:#35b0a0;--CalculatedColumn:#e4c860;
+    --Measure:#5ab0ff;--Hierarchy:#a98fe0;--Visual:#f06bc0;--Page:#5bc873;
+    --CalculationItem:#b06fd0;--Role:#ff7d84;--FieldParameter:#5a6fd0;
+    --up:#5ab0ff;--down:#f0956a;
+    --grad:linear-gradient(100deg,#f2c811,#e8a33d);--glass-brd:rgba(255,255,255,.14);
+    --shadow:0 10px 34px rgba(0,0,0,.46),0 2px 10px rgba(0,0,0,.32);
+  }
+  html{color-scheme:light;background:var(--bg)} [data-theme="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:transparent;color:var(--body);line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;z-index:-2;
+    background:linear-gradient(135deg,#fbf9f3,#f6f4f1 50%,#eef4fb)}
+  [data-theme="dark"] body::before{background:linear-gradient(135deg,#201f1e,#1b1a19 50%,#15202c)}
+  body::after{content:"";position:fixed;inset:-20% -10% auto -10%;height:90vh;z-index:-1;pointer-events:none;filter:blur(30px);
+    background:radial-gradient(42vw 42vw at 15% 12%,rgba(242,200,17,.30),transparent 60%),
+      radial-gradient(38vw 38vw at 85% 8%,rgba(17,141,255,.18),transparent 60%),
+      radial-gradient(44vw 40vw at 60% 70%,rgba(230,108,55,.14),transparent 62%)}
+  [data-theme="dark"] body::after{opacity:.5}
+  header,.view,.card,.panel{backdrop-filter:blur(var(--blur)) saturate(140%);-webkit-backdrop-filter:blur(var(--blur)) saturate(140%)}
+  .themebtn{position:absolute;top:16px;right:22px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    padding:7px 13px;border-radius:999px;font:600 13px var(--font);color:#252423;background:rgba(255,255,255,.38);
+    border:1px solid rgba(37,36,35,.22);backdrop-filter:blur(10px);transition:.15s;z-index:5}
+  .themebtn:hover{background:rgba(255,255,255,.55)}
+  header{padding:20px 28px;position:relative;background:var(--grad);color:#252423;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:19px;color:#252423;font-weight:800} header .sub{color:rgba(37,36,35,.78);font-size:13px;margin-top:5px}
+  header .sub b{color:#252423}
+  .shell{max-width:1200px;margin:0 auto;padding:16px 22px}
+  .cards{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .pilln{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px}
+  .pilln b{font-size:15px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-bottom:6px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:9px;height:9px;border-radius:2px;flex:none;display:inline-block}
+  .tabs{display:flex;gap:6px;margin:14px 0 0}
+  .tab{padding:10px 18px;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;
+       background:var(--panel2);color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;margin-bottom:-1px}
+  .tab.active{background:var(--panel);color:var(--ink);border-top:2px solid var(--accent);font-weight:700}
+  .view{display:none;border:1px solid var(--line);border-radius:0 12px 12px 12px;background:var(--panel);padding:18px;box-shadow:var(--shadow)}
+  .view.active{display:block}
+  input,select{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:10px}
+  table.grid{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.grid th,table.grid td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.grid th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  table.grid td:first-child,table.grid th:first-child{width:50%;white-space:normal;word-break:break-word}
+  table.grid td:last-child,table.grid th:last-child{width:50%;white-space:normal;word-break:break-word}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .card>.hd{padding:10px 14px;background:var(--panel2);font-weight:700;font-size:14px;
+    display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .card>.hd .chip{font-size:11px;color:var(--muted);font-weight:600;margin-left:auto}
+  .card>.hd .caret{width:14px;flex:none;text-align:center;color:var(--accent);font-size:11px;user-select:none}
+  .card .bd{padding:6px 14px 12px}
+  .grp{margin:10px 0 3px;font-size:12px;font-weight:700;color:var(--Column);display:flex;gap:6px;align-items:center}
+  .mlist{margin-top:4px} .mlist .m{display:inline-block;background:rgba(84,160,255,.14);color:var(--Measure);
+    border-radius:6px;padding:2px 8px;margin:3px 5px 0 0;font-size:12px}
+  .dtype{color:var(--muted)} .calc{color:var(--CalculatedColumn)}
+  /* visuals grid */
+  .pagehdr{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin:18px 0 10px;
+    padding-bottom:7px;border-bottom:2px solid var(--line)}
+  .pagehdr .chip{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600}
+  table.vgrid{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.vgrid th,table.vgrid td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);
+    vertical-align:top;overflow:hidden;text-overflow:ellipsis}
+  table.vgrid th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  table.vgrid td.field{white-space:normal;word-break:break-word;font-weight:600}
+  tr.r-measure{background:rgba(84,160,255,.06)}
+  .role{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .role.measure{background:rgba(84,160,255,.18);color:var(--Measure)}
+  .role.column{background:rgba(29,211,176,.18);color:var(--Column)}
+  .role.calc{background:rgba(254,202,87,.18);color:var(--CalculatedColumn)}
+  .muted{color:var(--muted)} .empty{color:var(--muted);padding:12px;font-size:13px}
+  /* explorer */
+  .wrap{display:grid;grid-template-columns:330px 1fr;gap:16px}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .panel h3{margin:0 0 10px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .list{max-height:62vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+  .item{padding:7px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;color:var(--body)}
+  .item:hover{background:var(--soft)} .item.sel{background:var(--soft);box-shadow:inset 3px 0 0 var(--accent)}
+  .tname{color:var(--muted);font-size:11px;margin-left:auto}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.cols2{grid-template-columns:1fr}}
+  .treehdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .b-up{background:rgba(84,160,255,.16);color:var(--up);font-weight:700;padding:1px 7px;border-radius:999px}
+  .b-down{background:rgba(255,159,67,.16);color:var(--down);font-weight:700;padding:1px 7px;border-radius:999px}
+  .help{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:11px 14px;font-size:13px;line-height:1.55;color:var(--ink);margin-bottom:14px}
+  .help b{color:var(--ink)} .help i{color:var(--muted)}
+  .chk{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin:2px 0 8px;cursor:pointer}
+  .chk input{width:auto;margin:0}
+  .rel{color:var(--muted);font-size:11px;font-style:italic}
+  .summary{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    font-size:13px;line-height:1.5;margin-bottom:12px}
+  ul.tree{list-style:none;margin:0;padding-left:14px;font-size:13px} ul.tree.root{padding-left:0}
+  li.node{margin:3px 0}
+  .tog{cursor:pointer;color:var(--accent);width:14px;display:inline-block;user-select:none}
+  .nlabel{cursor:pointer} .nlabel:hover{text-decoration:underline}
+  .selhdr{font-size:15px;font-weight:700;margin-bottom:4px}
+  .impact{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+  .impact .k{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px}
+  button.btn{background:var(--accent);color:#252423;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer}
+  button.btn:hover{background:var(--accent-dark)}
+  /* graph */
+  .graphwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel2);max-height:64vh}
+  svg.lin{display:block}
+  .gnode{cursor:pointer} .gnode text{font-size:11px;fill:var(--ink);pointer-events:none;font-weight:600}
+  .gnode:hover rect.box{fill:var(--soft)}
+  .gcol-label{fill:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+  .gedge{fill:none;stroke:#b8c2d4;stroke-width:1.6;opacity:.9}
+  .gtoggle{float:right;font-size:12px;color:var(--accent);cursor:pointer;user-select:none;font-weight:700}
+  .gnote{color:var(--muted);font-size:11px;margin-top:6px}
+  .seclbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 8px}
+  /* visual lineage (4-column flow) */
+  .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .subtab{padding:8px 16px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);
+    color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;user-select:none;transition:.15s}
+  .subtab:hover{color:var(--ink)}
+  .subtab.active{background:var(--accent);color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+  .vlbar{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .vlbar select{width:auto;min-width:280px;margin:0}
+  .vlbar #vlhint{font-size:12px}
+  .vltag{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px}
+  .vltag.fp{background:rgba(124,58,237,.16);color:#7c3aed}
+  .vltag.cg{background:rgba(217,119,6,.16);color:#d97706}
+  .vllegend{display:flex;align-items:center;gap:18px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .vllegend .ln{display:inline-block;width:26px;height:0;border-top:2px solid #b8c2d4;vertical-align:middle;margin-right:6px}
+  .vllegend .ln.fp{border-top:2px dashed #7c3aed}
+  .vllegend .ln.cg{border-top:2px dashed #d97706}
+  .fnode{cursor:pointer}
+  .fnode text.ttl{font-size:11px;fill:var(--ink);font-weight:700;pointer-events:none}
+  .fnode text.sub{font-size:9px;fill:var(--muted);pointer-events:none}
+  .fnode:hover rect.box{fill:var(--soft)}
+  .fnode.dim{opacity:.15}
+  .fedge{transition:opacity .15s} .fedge.dim{opacity:.06}
+  .vlkey{fill:var(--muted);font-size:9px;font-style:italic} .vlkey.dim{opacity:.1}
+  .vlcolhdr{fill:var(--ink);font-size:12px;font-weight:800}
+  .vlcolcnt{fill:var(--muted);font-size:10px}
+  /* source map */
+  table.smap{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.smap th,table.smap td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);
+    vertical-align:top;overflow:hidden;text-overflow:ellipsis}
+  table.smap th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  table.smap td.col{white-space:normal;word-break:break-word;font-weight:600}
+  table.smap td.arr{color:var(--muted);text-align:center;width:28px}
+  .origin{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .origin.source{background:rgba(29,211,176,.18);color:var(--Column)}
+  .origin.custom{background:rgba(217,119,6,.16);color:var(--Source)}
+  .origin.calculated{background:rgba(84,160,255,.16);color:var(--Measure)}
+  .origin.unknown{background:rgba(100,116,139,.16);color:var(--muted)}
+  .srccol{font-family:Consolas,monospace;font-size:12px;color:var(--ink)}
+  .srctbl{color:var(--muted);font-size:11px}
+  .origin.role{background:rgba(220,38,38,.12);color:var(--Role)}
+  /* security (RLS) */
+  .rolehd{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+  .rolehd .perm{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600;
+    background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+  .tperm{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+  .tperm .tp-tbl{font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;margin-bottom:6px}
+  .filter{font-family:Consolas,monospace;font-size:12px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;color:var(--ink);white-space:pre-wrap;word-break:break-word;margin-bottom:7px}
+  .depcols{display:flex;flex-wrap:wrap;gap:6px}
+  .depcol{display:inline-flex;align-items:center;gap:5px;font-size:12px;background:rgba(29,211,176,.12);
+    color:var(--Column);border-radius:6px;padding:2px 9px}
+  .fpbadge,.cgbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px}
+  .fpbadge{background:rgba(8,145,178,.14);color:var(--FieldParameter)}
+  .cgbadge{background:rgba(147,51,234,.14);color:var(--CalculationItem)}
+  /* parameters & shared queries */
+  .exprbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+  .exprbox h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .exprgrid{display:flex;flex-wrap:wrap;gap:8px}
+  .exprchip{display:inline-flex;align-items:center;gap:7px;font-size:12px;background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .exprchip .ek{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    padding:1px 6px;border-radius:999px}
+  .exprchip .ek.param{background:rgba(217,119,6,.14);color:var(--Source)}
+  .exprchip .ek.query{background:rgba(37,99,235,.14);color:var(--Measure)}
+  .exprchip b{font-weight:700;color:var(--ink)} .exprchip .ev{color:var(--muted);font-family:Consolas,monospace}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <button class="themebtn" id="themebtn" type="button" title="Switch light / dark theme">
+    <span class="ico">🌙</span><span class="lbl">Dark</span></button>
+  <h1>🔗 Power BI — Data Lineage</h1>
+  <div class="sub">Model: <b>{{MODEL_NAME}}</b> · Report: <b>{{PBIX_NAME}}</b> · Generated: <b>{{RUN_TIMESTAMP}}</b></div>
+</header>
+<div class="shell">
+  <div class="cards" id="cards"></div>
+  <div class="legend" id="legend"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-view="tables">📋 Tables &amp; Columns</div>
+    <div class="tab" data-view="vlineage">🗺️ Visual Lineage</div>
+    <div class="tab" data-view="sourcemap">🧬 Source Map</div>
+    <div class="tab" data-view="visuals">📊 Visuals &amp; Fields</div>
+    <div class="tab" data-view="explorer">🔎 Dependency Explorer</div>
+    <div class="tab" data-view="security">🛡️ Security (RLS)</div>
+  </div>
+
+  <!-- ===== Tables view ===== -->
+  <div class="view active" id="view-tables">
+    <input id="qt" placeholder="Filter by table, column or data type…" />
+    <div id="tablesWrap"></div>
+  </div>
+
+  <!-- ===== Visual Lineage view ===== -->
+  <div class="view" id="view-vlineage">
+    <div class="help">
+      <b>Visual lineage</b> — the whole model as a left-to-right flow:
+      <b>data sources → tables → measures → visuals</b>. Each table shows its
+      <i>columns/measures</i> count; the measures column also carries
+      <b>field-parameter</b> fields (<span class="vltag fp">FP</span>) and
+      <b>calculation-group</b> items (<span class="vltag cg">Calc</span>).
+      Use the sub-tabs below to trace one thread and fade out the rest.
+    </div>
+    <div class="subtabs" id="vlsubtabs">
+      <div class="subtab active" data-mode="full">Full Lineage</div>
+      <div class="subtab" data-mode="visual">Visual Trace</div>
+      <div class="subtab" data-mode="source">Source Trace</div>
+      <div class="subtab" data-mode="impact">Impact Analysis</div>
+      <div class="subtab" data-mode="column">Column Impact</div>
+    </div>
+    <div class="vlbar">
+      <select id="vlanchor" style="display:none"></select>
+      <span class="muted" id="vlhint"></span>
+    </div>
+    <div class="graphwrap" id="vlwrap"></div>
+    <div class="vllegend">
+      <span><span class="ln static"></span> Static</span>
+      <span><span class="ln fp"></span> Field Param</span>
+      <span><span class="ln cg"></span> Calc Group</span>
+      <span class="muted" style="margin-left:auto">Click any node to trace from it.</span>
+    </div>
+  </div>
+
+  <!-- ===== Source Map view ===== -->
+  <div class="view" id="view-sourcemap">
+    <div class="help">
+      <b>Where does each column come from?</b> This traces every model column back to its
+      <b>physical origin</b> by reading the table's Power Query (M) steps —
+      <span class="origin source">source</span> = a real column in the data source (shown with the
+      source table &amp; original column name, before any rename),
+      <span class="origin custom">custom</span> = a column built in Power Query,
+      <span class="origin calculated">calculated</span> = a DAX calculated column/table, and
+      <span class="origin unknown">unknown</span> = no M available (e.g. a live-engine read).
+    </div>
+    <div id="exprPanel"></div>
+    <input id="qs" placeholder="Filter by table, column, source table or source column…" />
+    <div id="sourcemapWrap"></div>
+  </div>
+
+  <!-- ===== Visuals view ===== -->
+  <div class="view" id="view-visuals">
+    <input id="qv" placeholder="Filter by visual type, page, table, column or measure…" />
+    <div id="visualsWrap"></div>
+  </div>
+
+  <!-- ===== Explorer view ===== -->
+  <div class="view" id="view-explorer">
+    <div class="help">
+      <b>Pick any object</b> on the left to trace it both ways.
+      <span class="b-up">⬆ Upstream</span> = what it's <b>built from</b> (its columns, tables, and data source) —
+      follow it to find where a number comes from.
+      <span class="b-down">⬇ Downstream</span> = everything that <b>uses it</b> (other measures, visuals, pages) —
+      i.e. <b>what breaks if you change or delete it</b>.
+      Each line shows <i>how</i> two things connect (via a DAX reference, a relationship, a Power Query source, or a visual).
+    </div>
+    <div class="wrap">
+      <div>
+        <div class="panel">
+          <h3>Objects</h3>
+          <input id="q" placeholder="Search objects…" />
+          <select id="ftype"><option value="">All types</option></select>
+          <label class="chk"><input type="checkbox" id="orphans" /> Orphans only (nothing downstream)</label>
+          <div class="list" id="list"></div>
+        </div>
+        <div class="panel">
+          <h3>Export</h3>
+          <button class="btn" id="dl">⬇ Download lineage JSON</button>
+          <div class="muted" style="margin-top:6px;font-size:12px">nodes + edges for external catalogs (OpenLineage-style).</div>
+        </div>
+      </div>
+      <div>
+        <div class="panel" id="detail">
+          <div class="empty">Select an object on the left to see its upstream dependencies and downstream impact.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Security (RLS) view ===== -->
+  <div class="view" id="view-security">
+    <div class="help">
+      <b>Row-Level Security.</b> Each <span class="origin role">role</span> restricts what users can
+      see. Below, every role lists the tables it filters, the <b>DAX filter</b> applied, and the
+      <b>columns</b> that filter depends on — so you can see at a glance what a role is built on
+      (and, from the Dependency Explorer, which roles a column change would affect).
+    </div>
+    <div id="securityWrap"></div>
+  </div>
+</div>
+<footer>Generated by the Power BI Agentic Data Lineage agent · model from PBIP/TMDL or the local engine (ADOMD) · report usage from the .pbix / .Report</footer>
+<script>
+const NODES = {{NODES_JSON}};
+const EDGES = {{EDGES_JSON}};
+const STATS = {{STATS_JSON}};
+const SOURCEMAP = {{SOURCEMAP_JSON}};
+const ROLES = {{ROLES_JSON}};
+const CALCITEMS = {{CALCITEMS_JSON}};
+const FIELDPARAMS = {{FIELDPARAMS_JSON}};
+const EXPRESSIONS = {{EXPRESSIONS_JSON}};
+const esc=t=>(''+(t==null?'':t)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const byId={}; NODES.forEach(n=>byId[n.id]=n);
+const typeColor=t=>getComputedStyle(document.documentElement).getPropertyValue('--'+t.replace(/ /g,''))||'#888';
+const byLabel=(a,b)=>a.label.localeCompare(b.label);
+const colName=lbl=>{const i=lbl.indexOf('[');return i>=0?lbl.slice(i+1,lbl.lastIndexOf(']')):lbl;};
+
+/* ---------- overview ---------- */
+function cards(){
+  document.getElementById('cards').innerHTML=
+    `<div class="pilln"><b>${STATS.nodes}</b> nodes</div><div class="pilln"><b>${STATS.edges}</b> edges</div>
+     <div class="pilln"><b>${(STATS.byType||{})['Table']||0}</b> tables</div>
+     <div class="pilln"><b>${STATS.visuals}</b> visuals</div><div class="pilln"><b>${STATS.pages}</b> pages</div>
+     <div class="pilln"><b>${STATS.orphanCount}</b> orphans</div>
+     ${STATS.columnsTotal?`<div class="pilln"><b>${STATS.sourceMapped}</b>/${STATS.columnsTotal} columns traced to source</div>`:''}
+     ${STATS.calcGroups?`<div class="pilln"><b>${STATS.calcGroups}</b> calc group${STATS.calcGroups!==1?'s':''}</div>`:''}
+     ${STATS.fieldParams?`<div class="pilln"><b>${STATS.fieldParams}</b> field param${STATS.fieldParams!==1?'s':''}</div>`:''}
+     ${STATS.roles?`<div class="pilln"><b>${STATS.roles}</b> RLS role${STATS.roles!==1?'s':''}</div>`:''}`;
+  const t=STATS.byType||{};
+  document.getElementById('legend').innerHTML=Object.keys(t).sort().map(k=>
+    `<span><span class="dot" style="background:${typeColor(k)}"></span>${esc(k)} (${t[k]})</span>`).join('');
+}
+
+/* ---------- Tables & Columns ---------- */
+const colsByTable={}, measByTable={};
+NODES.forEach(n=>{
+  if(n.type==='Column'||n.type==='Calculated Column'){(colsByTable[n.table]=colsByTable[n.table]||[]).push(n);}
+  else if(n.type==='Measure'){(measByTable[n.table]=measByTable[n.table]||[]).push(n);}
+});
+const tableNode={}; NODES.forEach(n=>{if(n.type==='Table')tableNode[n.label]=n;});
+const calcItemsByTable={};
+CALCITEMS.forEach(ci=>{(calcItemsByTable[ci.Table]=calcItemsByTable[ci.Table]||[]).push(ci);});
+const fieldParamByTable={};
+FIELDPARAMS.forEach(fp=>{fieldParamByTable[fp.Table]=fp;});
+function buildTables(){
+  const q=(document.getElementById('qt').value||'').toLowerCase();
+  const tables=NODES.filter(n=>n.type==='Table').sort(byLabel);
+  let html='';
+  tables.forEach(t=>{
+    const tn=t.label;
+    let cols=(colsByTable[tn]||[]).slice().sort((a,b)=>colName(a.label).localeCompare(colName(b.label)));
+    let meas=(measByTable[tn]||[]).slice().sort(byLabel);
+    const tableMatch=!q||tn.toLowerCase().includes(q);
+    if(q && !tableMatch){
+      cols=cols.filter(c=>(colName(c.label)+' '+(c.dataType||'')).toLowerCase().includes(q));
+      meas=meas.filter(m=>m.label.toLowerCase().includes(q));
+      if(!cols.length && !meas.length) return;
+    }
+    const rows=cols.map(c=>`<tr>
+        <td><span class="dot" style="background:${typeColor(c.type)}"></span> ${esc(colName(c.label))}
+            ${c.type==='Calculated Column'?'<span class="calc"> · calc</span>':''}
+            ${c.hidden?'<span class="muted"> · hidden</span>':''}</td>
+        <td class="dtype">${esc(c.dataType||'—')}</td></tr>`).join('')
+      || '<tr><td colspan="2" class="muted">no columns</td></tr>';
+    const mhtml=meas.length?`<div class="grp"><span class="dot" style="background:${typeColor('Measure')}"></span>
+        Measures (${meas.length})</div><div class="mlist">${meas.map(m=>`<span class="m">${esc(m.label)}</span>`).join('')}</div>`:'';
+    // calculation-group items
+    const items=(calcItemsByTable[tn]||[]).slice().sort((a,b)=>(a.Ordinal||0)-(b.Ordinal||0));
+    const cihtml=items.length?`<div class="grp"><span class="dot" style="background:${typeColor('Calculation Item')}"></span>
+        Calculation items (${items.length})</div>
+        <table class="grid"><thead><tr><th>Item</th><th>DAX</th></tr></thead><tbody>${
+        items.map(it=>`<tr><td>${esc(it.Name)}</td>
+          <td class="srccol" style="white-space:normal">${esc((it.Expression||'').replace(/\s+/g,' ').slice(0,160))}</td></tr>`).join('')}</tbody></table>`:'';
+    // field-parameter exposed fields
+    const fp=fieldParamByTable[tn];
+    const fphtml=fp?`<div class="grp"><span class="dot" style="background:${typeColor('Field Parameter')}"></span>
+        Exposes ${fp.fields.length} field${fp.fields.length!==1?'s':''}</div>
+        <table class="grid"><thead><tr><th>Shown as</th><th>Underlying field</th></tr></thead><tbody>${
+        fp.fields.map(f=>`<tr><td>${esc(f.display)}</td>
+          <td><span class="dot" style="background:${typeColor(f.refType==='MEASURE'?'Measure':'Column')}"></span> ${
+          esc((f.refTable?f.refTable+'[':'')+(f.refName||f.ref||'')+(f.refTable?']':''))}</td></tr>`).join('')}</tbody></table>`:'';
+    const badges=(t.calcGroup?`<span class="cgbadge">calc group</span>`:'')
+                +(t.fieldParameter?`<span class="fpbadge">field parameter</span>`:'');
+    const chip=t.calcGroup?`${items.length} items`
+              :t.fieldParameter?`${(fp?fp.fields.length:0)} fields`
+              :`${cols.length} columns${meas.length?' · '+meas.length+' measures':''}`;
+    const grid=t.calcGroup&&items.length
+      ? '' /* calc-group tables: show items instead of the single hidden column */
+      : `<table class="grid"><thead><tr><th>Column</th><th>Data type</th></tr></thead><tbody>${rows}</tbody></table>`;
+    html+=`<div class="card">
+      <div class="hd"><span class="dot" style="background:${typeColor('Table')}"></span>${esc(tn)}${badges}
+        <span class="chip">${chip}</span></div>
+      <div class="bd">
+        ${grid}${mhtml}${cihtml}${fphtml}
+      </div></div>`;
+  });
+  document.getElementById('tablesWrap').innerHTML=html||'<div class="empty">No tables match.</div>';
+  wireCards('tablesWrap');
+}
+
+/* ---------- Source Map (model column -> physical source column) ---------- */
+const smapByTable={};
+SOURCEMAP.forEach(r=>{(smapByTable[r.table]=smapByTable[r.table]||[]).push(r);});
+function sourceCell(r){
+  if(r.origin==='source'){
+    const sc=r.sourceColumn&&r.sourceColumn.toLowerCase()!==r.column.toLowerCase()
+      ? `<span class="srccol">${esc(r.sourceColumn)}</span> <span class="muted">(renamed)</span>`
+      : `<span class="srccol">${esc(r.sourceColumn||r.column)}</span>`;
+    const st=r.sourceTable?`<div class="srctbl">${esc(r.sourceLabel||'')} · ${esc(r.sourceTable)}</div>`
+                          :(r.sourceLabel?`<div class="srctbl">${esc(r.sourceLabel)}</div>`:'');
+    return sc+st;
+  }
+  if(r.origin==='custom') return '<span class="muted">built in Power Query</span>';
+  if(r.origin==='calculated') return '<span class="muted">DAX expression</span>';
+  return '<span class="muted">—</span>';
+}
+function buildExpressions(){
+  const el=document.getElementById('exprPanel'); if(!el) return;
+  if(!EXPRESSIONS.length){ el.innerHTML=''; return; }
+  const params=EXPRESSIONS.filter(e=>e.kind==='parameter');
+  const queries=EXPRESSIONS.filter(e=>e.kind==='query');
+  const chip=e=>e.kind==='parameter'
+    ? `<span class="exprchip"><span class="ek param">param</span><b>${esc(e.name)}</b>${
+        e.value?`<span class="ev">= ${esc(e.value.length>40?e.value.slice(0,39)+'…':e.value)}</span>`:''}</span>`
+    : `<span class="exprchip"><span class="ek query">query</span><b>${esc(e.name)}</b>${
+        e.source?`<span class="ev">${esc(e.source)}</span>`:''}</span>`;
+  el.innerHTML=`<div class="exprbox">
+    <h4>Parameters &amp; shared queries (${EXPRESSIONS.length})</h4>
+    <div class="muted" style="font-size:12px;margin-bottom:8px">Reusable Power Query building blocks.
+      Tables that reference a shared query are resolved to <b>its</b> data source below.</div>
+    <div class="exprgrid">${params.map(chip).join('')}${queries.map(chip).join('')}</div></div>`;
+}
+function buildSourceMap(){
+  buildExpressions();
+  if(!SOURCEMAP.length){
+    document.getElementById('sourcemapWrap').innerHTML=
+      '<div class="empty">No column-level source information was available. Supply the model as a '
+      +'Power BI Project (.pbip/TMDL) so the Power Query (M) steps can be read.</div>';
+    return;
+  }
+  const q=(document.getElementById('qs').value||'').toLowerCase();
+  const tables=Object.keys(smapByTable).sort((a,b)=>a.localeCompare(b));
+  let html='';
+  tables.forEach(tn=>{
+    let rows=smapByTable[tn].slice();
+    const tableMatch=!q||tn.toLowerCase().includes(q);
+    if(q && !tableMatch){
+      rows=rows.filter(r=>(r.column+' '+(r.sourceColumn||'')+' '+(r.sourceTable||'')+' '+(r.sourceLabel||''))
+        .toLowerCase().includes(q));
+      if(!rows.length) return;
+    }
+    const traced=rows.filter(r=>r.origin==='source').length;
+    const body=rows.map(r=>`<tr>
+        <td class="col"><span class="dot" style="background:${typeColor(r.colType)}"></span> ${esc(r.column)}
+            ${r.colType==='Calculated Column'?'<span class="calc"> · calc</span>':''}</td>
+        <td class="dtype">${esc(r.dataType||'—')}</td>
+        <td><span class="origin ${r.origin}">${esc(r.origin)}</span></td>
+        <td class="arr">→</td>
+        <td>${sourceCell(r)}</td></tr>`).join('');
+    html+=`<div class="card">
+      <div class="hd"><span class="dot" style="background:${typeColor('Table')}"></span>${esc(tn)}
+        <span class="chip">${rows.length} column${rows.length!==1?'s':''} · ${traced} from source</span></div>
+      <div class="bd">
+        <table class="smap"><colgroup><col style="width:30%"><col style="width:13%"><col style="width:14%"><col style="width:28px"><col></colgroup>
+          <thead><tr><th>Model column</th><th>Data type</th><th>Origin</th><th></th><th>Physical source</th></tr></thead>
+          <tbody>${body}</tbody></table>
+      </div></div>`;
+  });
+  document.getElementById('sourcemapWrap').innerHTML=html||'<div class="empty">No columns match.</div>';
+  wireCollapsible('sourcemapWrap', !!q);
+}
+
+/* ---------- Security (RLS) ---------- */
+function buildSecurity(){
+  if(!ROLES.length){
+    document.getElementById('securityWrap').innerHTML=
+      '<div class="empty">No row-level security roles are defined in this model '
+      +'(or the model was read from the live engine, which this view does not capture).</div>';
+    return;
+  }
+  const html=ROLES.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(r=>{
+    const perms=(r.tablePermissions||[]).map(tp=>{
+      const cols=(tp.columns||[]).map(c=>`<span class="depcol">
+          <span class="dot" style="background:${typeColor('Column')}"></span>${esc(c.table)}[${esc(c.name)}]</span>`).join('');
+      return `<div class="tperm">
+        <div class="tp-tbl"><span class="dot" style="background:${typeColor('Table')}"></span>${esc(tp.table)}</div>
+        ${tp.filter?`<div class="filter">${esc(tp.filter)}</div>`:'<div class="muted" style="font-size:12px">no filter (full table)</div>'}
+        ${cols?`<div class="muted" style="font-size:11px;margin-bottom:4px">depends on</div><div class="depcols">${cols}</div>`:''}
+      </div>`;}).join('') || '<div class="muted" style="font-size:12px">No table filters — this role sees everything.</div>';
+    return `<div class="card">
+      <div class="hd rolehd"><span class="dot" style="background:${typeColor('Role')}"></span>${esc(r.name)}
+        <span class="perm">${esc(r.modelPermission||'read')}</span></div>
+      <div class="bd">${perms}</div></div>`;
+  }).join('');
+  document.getElementById('securityWrap').innerHTML=html;
+  wireCards('securityWrap');
+}
+
+/* ---------- Visuals & Fields ---------- */
+const fieldsByVis={};
+EDGES.forEach(e=>{ if(e.kind==='visual'){ (fieldsByVis[e.to]=fieldsByVis[e.to]||[]).push(e.from); } });
+function buildVisuals(){
+  const q=(document.getElementById('qv').value||'').toLowerCase();
+  const visuals=NODES.filter(n=>n.type==='Visual');
+  if(!visuals.length){
+    document.getElementById('visualsWrap').innerHTML=
+      '<div class="empty">No report layer was available (open the .pbix / PBIP .Report alongside the model to see visual usage).</div>';
+    return;
+  }
+  // group visuals by report page
+  const byPage={};
+  visuals.forEach(v=>{const pg=v.page||'(no page)';(byPage[pg]=byPage[pg]||[]).push(v);});
+  let html='';
+  Object.keys(byPage).sort().forEach(pg=>{
+    const vlist=byPage[pg].slice().sort((a,b)=>(a.visualType||'').localeCompare(b.visualType||''));
+    let cards='';
+    vlist.forEach(v=>{
+      const fs=(fieldsByVis[v.id]||[]).map(id=>byId[id]).filter(Boolean);
+      const meas=fs.filter(n=>n.type==='Measure').sort(byLabel);
+      const cols=fs.filter(n=>n.type==='Column'||n.type==='Calculated Column')
+        .sort((a,b)=>colName(a.label).localeCompare(colName(b.label)));
+      // one row per field: measures first (the "numbers"), then columns (the "slicing")
+      const rowsData=[
+        ...meas.map(m=>({field:m.label,role:'Measure',cls:'measure',table:m.table||'',dtype:'—'})),
+        ...cols.map(c=>({field:colName(c.label),
+                         role:c.type==='Calculated Column'?'Calc column':'Column',
+                         cls:c.type==='Calculated Column'?'calc':'column',
+                         table:c.table||'',dtype:c.dataType||'—'}))];
+      const hay=((v.visualType||'')+' '+pg+' '+rowsData.map(r=>r.field+' '+r.table+' '+r.dtype).join(' ')).toLowerCase();
+      if(q && !hay.includes(q)) return;
+      const body=rowsData.length
+        ? `<table class="vgrid"><colgroup><col style="width:40%"><col style="width:17%"><col style="width:25%"><col style="width:18%"></colgroup>
+           <thead><tr><th>Field</th><th>Role</th><th>From table</th><th>Data type</th></tr></thead>
+           <tbody>${rowsData.map(r=>`<tr class="r-${r.cls}">
+             <td class="field">${esc(r.field)}</td>
+             <td><span class="role ${r.cls}">${esc(r.role)}</span></td>
+             <td>${esc(r.table)||'<span class=muted>—</span>'}</td>
+             <td class="dtype">${esc(r.dtype)}</td></tr>`).join('')}</tbody></table>`
+        : '<div class="muted" style="padding:6px 2px">No fields detected on this visual.</div>';
+      cards+=`<div class="card">
+        <div class="hd"><span class="dot" style="background:${typeColor('Visual')}"></span>${esc(v.visualType||'visual')}
+          <span class="chip">${meas.length} measure${meas.length!==1?'s':''} · ${cols.length} column${cols.length!==1?'s':''}</span></div>
+        <div class="bd">${body}</div></div>`;
+    });
+    if(cards) html+=`<div class="pagehdr"><span class="dot" style="background:${typeColor('Page')}"></span>
+      Page: ${esc(pg)}<span class="chip">${vlist.length} visual${vlist.length!==1?'s':''}</span></div>${cards}`;
+  });
+  document.getElementById('visualsWrap').innerHTML=html||'<div class="empty">No visuals match.</div>';
+  wireCollapsible('visualsWrap', !!q);
+}
+function wireCards(wrapId){
+  document.querySelectorAll('#'+wrapId+' .card>.hd').forEach(hd=>hd.onclick=()=>{
+    const bd=hd.parentElement.querySelector('.bd'); bd.style.display=bd.style.display==='none'?'':'none';});
+}
+// collapsible card sections: a caret per header, collapsed by default, independent toggle.
+// openAll (used while filtering) expands every section so matches stay visible.
+function wireCollapsible(wrapId, openAll){
+  document.querySelectorAll('#'+wrapId+' .card').forEach(card=>{
+    const hd=card.querySelector('.hd'), bd=card.querySelector('.bd');
+    if(!hd||!bd) return;
+    let car=hd.querySelector('.caret');
+    if(!car){ car=document.createElement('span'); car.className='caret'; hd.insertBefore(car,hd.firstChild); }
+    const set=open=>{ bd.style.display=open?'':'none'; car.textContent=open?'▾':'▸'; };
+    set(!!openAll);
+    hd.onclick=()=>set(bd.style.display==='none');
+  });
+}
+
+/* ---------- Explorer (dependency trees) ---------- */
+const REL={source:'Power Query source',dax:'DAX reference',relationship:'relationship',
+           visual:'placed on visual',page:'report page',calcgroup:'calculation group',
+           fieldparam:'field parameter',rls:'row-level security'};
+const fwd={}, bak={};                       // store {id,kind} so we can label HOW things connect
+NODES.forEach(n=>{fwd[n.id]=[];bak[n.id]=[];});
+EDGES.forEach(e=>{ if(fwd[e.from]&&bak[e.to]){fwd[e.from].push({id:e.to,kind:e.kind});bak[e.to].push({id:e.from,kind:e.kind});} });
+const isOrphan={}; NODES.forEach(n=>{
+  isOrphan[n.id]=(['Measure','Column','Calculated Column'].includes(n.type)) && fwd[n.id].length===0; });
+function fillTypes(){
+  const sel=document.getElementById('ftype');
+  [...new Set(NODES.map(n=>n.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=o.textContent=t;sel.appendChild(o);});
+}
+let selected=null;
+function renderList(){
+  const q=document.getElementById('q').value.toLowerCase(), ft=document.getElementById('ftype').value;
+  const orph=document.getElementById('orphans').checked;
+  const data=NODES.filter(n=>(!ft||n.type===ft)&&(!orph||isOrphan[n.id])
+      &&(!q||(n.label+' '+(n.table||'')).toLowerCase().includes(q)))
+    .sort((a,b)=>a.type.localeCompare(b.type)||a.label.localeCompare(b.label)).slice(0,600);
+  document.getElementById('list').innerHTML=data.map(n=>
+    `<div class="item ${n.id===selected?'sel':''}" data-id="${esc(n.id)}">
+       <span class="dot" style="background:${typeColor(n.type)}"></span>
+       <span>${esc(n.label)}</span><span class="tname">${esc(n.type)}</span></div>`).join('')
+    || '<div class="empty">No objects match.</div>';
+  document.querySelectorAll('#list .item').forEach(el=>el.onclick=()=>select(el.dataset.id));
+}
+function subtree(rootId, adj){
+  const seen=new Set();
+  function node(entry, depth){
+    const rec={id:entry.id, kind:entry.kind, children:[]};
+    if(seen.has(entry.id)||depth>12){ rec.cut=seen.has(entry.id); return rec; }
+    seen.add(entry.id);
+    (adj[entry.id]||[]).filter(x=>x.id!==entry.id).forEach(k=>rec.children.push(node(k,depth+1)));
+    return rec;
+  }
+  return (adj[rootId]||[]).map(k=>node(k,1));
+}
+function treeHtml(list){
+  if(!list.length) return '<div class="empty">nothing — this is a leaf</div>';
+  const li=n=>{
+    const nd=byId[n.id]; if(!nd) return '';
+    const kids=n.children&&n.children.length;
+    const toggle=kids?`<span class="tog">▾</span>`:`<span class="tog"> </span>`;
+    const dot=`<span class="dot" style="background:${typeColor(nd.type)}"></span>`;
+    const sub=kids?`<ul class="tree">${n.children.map(li).join('')}</ul>`:'';
+    const cut=n.cut?' <span class="muted">(already shown)</span>':'';
+    const rel=n.kind?` <span class="rel">— via ${esc(REL[n.kind]||n.kind)}</span>`:'';
+    return `<li class="node">${toggle}${dot}<span class="nlabel" data-id="${esc(n.id)}">${esc(nd.label)}</span>
+            <span class="muted" style="font-size:11px"> · ${esc(nd.type)}</span>${rel}${cut}${sub}</li>`;
+  };
+  return `<ul class="tree root">${list.map(li).join('')}</ul>`;
+}
+function descendantsCount(rootId, adj){
+  const seen=new Set(); const stack=(adj[rootId]||[]).map(x=>x.id);
+  while(stack.length){const x=stack.pop(); if(seen.has(x))continue; seen.add(x); (adj[x]||[]).forEach(y=>stack.push(y.id));}
+  return seen;
+}
+const an=t=>('aeiou'.includes((t||'')[0].toLowerCase())?'an ':'a ');
+
+/* ----- layered node-link graph: upstream ← selected → downstream ----- */
+function layers(rootId, adj, maxDepth){
+  const placed=new Set([rootId]); const res=[]; let frontier=[rootId];
+  for(let d=0; d<maxDepth; d++){
+    const nextIds=[];
+    frontier.forEach(x=>(adj[x]||[]).forEach(e=>{ if(!placed.has(e.id)){ placed.add(e.id); nextIds.push(e.id); } }));
+    if(!nextIds.length) break;
+    res.push(nextIds); frontier=nextIds;
+  }
+  return res;
+}
+function buildGraph(id){
+  const LX=190, rowH=32, nodeW=152, nodeH=26, padX=26, padY=30, cap=10, maxD=3;
+  const up=layers(id,bak,maxD).map(l=>l.slice(0,cap));
+  const dn=layers(id,fwd,maxD).map(l=>l.slice(0,cap));
+  const truncated=layers(id,bak,maxD).some(l=>l.length>cap)||layers(id,fwd,maxD).some(l=>l.length>cap);
+  const pos={};
+  const colCount=up.length+dn.length+1;
+  const maxRows=Math.max(1,...up.map(l=>l.length),...dn.map(l=>l.length));
+  const H=Math.max(130,maxRows*rowH+padY*2);
+  const W=padX*2+(colCount-1)*LX+nodeW;
+  const cx=padX+up.length*LX, cyMid=H/2;
+  const place=(ids,xLeft)=>{const k=ids.length;ids.forEach((nid,i)=>{pos[nid]={x:xLeft,y:cyMid+(i-(k-1)/2)*rowH-nodeH/2};});};
+  place([id],cx);
+  up.forEach((ids,d)=>place(ids,cx-(d+1)*LX));
+  dn.forEach((ids,d)=>place(ids,cx+(d+1)*LX));
+  let edgesSvg='';
+  EDGES.forEach(e=>{const a=pos[e.from],b=pos[e.to]; if(a&&b){
+    const x1=a.x+nodeW,y1=a.y+nodeH/2,x2=b.x,y2=b.y+nodeH/2,mx=(x1+x2)/2;
+    edgesSvg+=`<path class="gedge" marker-end="url(#arr)" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;}});
+  let nodesSvg='';
+  Object.keys(pos).forEach(nid=>{const n=byId[nid],p=pos[nid]; if(!n)return;
+    const center=nid===id,col=typeColor(n.type).trim()||'#888';
+    const lbl=n.label.length>21?n.label.slice(0,20)+'…':n.label;
+    nodesSvg+=`<g class="gnode${center?' gcenter':''}" data-gid="${esc(nid)}"><title>${esc(n.label)} · ${esc(n.type)}</title>
+       <rect class="box" x="${p.x}" y="${p.y}" width="${nodeW}" height="${nodeH}" rx="7" fill="${center?'var(--soft)':'var(--panel)'}" stroke="${col}" stroke-width="${center?2.5:1.3}"/>
+       <rect x="${p.x}" y="${p.y}" width="5" height="${nodeH}" fill="${col}"/>
+       <text x="${p.x+13}" y="${p.y+nodeH/2+4}">${esc(lbl)}</text></g>`;});
+  let lbls=`<text class="gcol-label" x="${cx+nodeW/2}" y="12" text-anchor="middle">▣ selected</text>`;
+  if(up.length) lbls+=`<text class="gcol-label" x="${padX}" y="12">⬆ upstream — built from</text>`;
+  if(dn.length) lbls+=`<text class="gcol-label" x="${W-padX}" y="12" text-anchor="end">downstream — uses it ⬇</text>`;
+  return `<div class="graphwrap"><svg class="lin" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#94a3b8"/></marker></defs>
+    ${lbls}${edgesSvg}${nodesSvg}</svg></div>`
+    +(truncated?'<div class="gnote">Some branches were trimmed for readability (max 10 per level, 3 hops each way). Use the tree view or click a node to re-center.</div>'
+      :'<div class="gnote">Click any node to re-center the graph on it.</div>');
+}
+
+function select(id){
+  selected=id; renderList();
+  const n=byId[id]; if(!n) return;
+  const down=descendantsCount(id,fwd), up=descendantsCount(id,bak);
+  const cnt=set=>{const c={}; set.forEach(x=>{const t=byId[x].type;c[t]=(c[t]||0)+1;}); return c;};
+  const dc=cnt(down);
+  const vis=dc['Visual']||0, pg=dc['Page']||0, dm=dc['Measure']||0;
+  // plain-language sentence
+  const where=n.table?` in <b>${esc(n.table)}</b>`:'';
+  let built = up.size ? `built from <b>${up.size}</b> upstream object${up.size>1?'s':''}` : `not built from anything else (a base field/source)`;
+  let used = down.size
+    ? `used by <b>${vis}</b> visual${vis!==1?'s':''}${pg?` on <b>${pg}</b> page${pg>1?'s':''}`:''}${dm?` and <b>${dm}</b> other measure${dm>1?'s':''}`:''}`
+    : `<b>not used anywhere</b> downstream — an orphan you could likely remove`;
+  const summary=`<div class="summary"><b>${esc(n.label)}</b> is ${an(n.type)}<b>${esc(n.type).toLowerCase()}</b>${where}.
+     It is ${built}, and ${used}.</div>`;
+  const impact=`<div class="impact">
+     <span class="k"><b>${vis}</b> visuals affected</span>
+     <span class="k"><b>${pg}</b> pages</span>
+     <span class="k"><b>${dm}</b> dependent measures</span>
+     <span class="k"><b>${up.size}</b> upstream objects</span></div>`;
+  const trees=`
+    <div class="cols2">
+      <div><div class="treehdr"><span class="b-up">⬆ Upstream</span> what it is built from</div>${treeHtml(subtree(id,bak))}</div>
+      <div><div class="treehdr"><span class="b-down">⬇ Downstream</span> what uses it (impact)</div>${treeHtml(subtree(id,fwd))}</div>
+    </div>`;
+  document.getElementById('detail').innerHTML=`
+    <div class="selhdr"><span class="dot" style="background:${typeColor(n.type)}"></span> ${esc(n.label)}
+      <span class="muted" style="font-size:12px"> · ${esc(n.type)}${n.table?' · '+esc(n.table):''}</span></div>
+    ${summary}${impact}
+    <div class="seclbl">⎔ Graph view</div>${buildGraph(id)}
+    <div class="seclbl" style="margin-top:16px">☰ Tree view</div>${trees}`;
+  document.querySelectorAll('#detail .gnode').forEach(el=>el.onclick=()=>select(el.dataset.gid));
+  document.querySelectorAll('#detail .nlabel').forEach(el=>el.onclick=()=>select(el.dataset.id));
+  document.querySelectorAll('#detail .tog').forEach(el=>el.onclick=()=>{
+    const ul=el.parentElement.querySelector('ul'); if(!ul)return;
+    ul.style.display=ul.style.display==='none'?'':'none'; el.textContent=ul.style.display==='none'?'▸':'▾';});
+}
+function defaultSelect(){
+  // auto-pick the highest-impact object so the panel isn't empty/confusing on load
+  let best=null, bestN=-1;
+  NODES.filter(n=>n.type==='Measure'||n.type==='Column'||n.type==='Calculated Column').forEach(n=>{
+    const d=descendantsCount(n.id,fwd).size; if(d>bestN){bestN=d;best=n.id;}});
+  if(best) select(best);
+}
+document.getElementById('dl').onclick=()=>{
+  const blob=new Blob([JSON.stringify({model:"{{MODEL_NAME}}",nodes:NODES,edges:EDGES},null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lineage.json'; a.click();
+};
+
+/* ---------- Visual Lineage (4-column flow) ---------- */
+const VL=(function(){
+  const SHOWN=new Set(['Source','Table','Measure','Calculation Item','Visual','Page']);
+  const fpExposed=new Set(), fpTableOf={};
+  EDGES.forEach(e=>{ if(e.kind==='fieldparam'){ fpExposed.add(e.from); fpTableOf[e.from]=(byId[e.to]||{}).label||''; } });
+  function shownId(id){
+    const n=byId[id]; if(!n) return null;
+    if(n.type==='Column'||n.type==='Calculated Column')
+      return fpExposed.has(id)?id:(byId['T:'+n.table]?'T:'+n.table:null);
+    if(n.type==='Role') return null;
+    return SHOWN.has(n.type)?id:null;
+  }
+  const colOf=id=>{const t=(byId[id]||{}).type;
+    return t==='Source'?0:t==='Table'?1:(t==='Visual'||t==='Page')?3:2;};
+  const titleOf=id=>{const n=byId[id];return n.type==='Visual'?(n.visualType||n.label):n.label;};
+  const subOf=id=>{const n=byId[id];
+    if(n.type==='Source') return n.kind||'Source';
+    if(n.type==='Table'){return ((colsByTable[n.label]||[]).length)+'c / '+((measByTable[n.label]||[]).length)+'m';}
+    if(fpExposed.has(id)) return 'FP: '+(fpTableOf[id]||'');
+    if(n.type==='Calculation Item') return 'Calc: '+(n.table||'');
+    if(n.type==='Measure') return n.table||'';
+    if(n.type==='Visual') return n.page||'';
+    if(n.type==='Page') return 'page';
+    return '';};
+  const grp=id=>fpExposed.has(id)?1:((byId[id]||{}).type==='Calculation Item')?2:0;
+  const shownSet=new Set(); NODES.forEach(n=>{const s=shownId(n.id); if(s)shownSet.add(s);});
+  const emap={}, vedges=[];
+  EDGES.forEach(e=>{ if(e.kind==='rls') return;
+    const a=shownId(e.from), b=shownId(e.to); if(!a||!b||a===b) return;
+    const k=a+'|'+b+'|'+e.kind; if(emap[k]) return; emap[k]=1;
+    vedges.push({from:a,to:b,kind:e.kind,key:e.key||null}); });
+  const COLHDR=['Data Sources','Tables','Measures','Visuals'];
+  const cols=[[],[],[],[]]; [...shownSet].forEach(id=>cols[colOf(id)].push(id));
+  const abc=(a,b)=>titleOf(a).localeCompare(titleOf(b));
+  cols[0].sort(abc); cols[1].sort(abc);
+  cols[2].sort((a,b)=>grp(a)-grp(b)||abc(a,b));
+  cols[3].sort((a,b)=>((byId[a].type==='Page')-(byId[b].type==='Page'))||abc(a,b));
+  const colW=252,nodeW=200,nodeH=38,vGap=9,padX=24,topPad=48,hdrH=22;
+  const pos={};
+  cols.forEach((ids,ci)=>{const x=padX+ci*colW;
+    ids.forEach((id,i)=>{pos[id]={x,y:topPad+hdrH+i*(nodeH+vGap),ci};});});
+  const maxLen=Math.max(1,...cols.map(c=>c.length));
+  const W=padX*2+3*colW+nodeW, H=topPad+hdrH+maxLen*(nodeH+vGap)+16;
+  const estyle=k=>k==='fieldparam'?{c:'#7c3aed',d:'5 4'}:k==='calcgroup'?{c:'#d97706',d:'5 4'}:{c:'#b8c2d4',d:''};
+  function render(lit){
+    const on=id=>!lit||lit.has(id);
+    let e='';
+    vedges.forEach(ed=>{const a=pos[ed.from],b=pos[ed.to]; if(!a||!b)return;
+      let x1,x2; const y1=a.y+nodeH/2,y2=b.y+nodeH/2;
+      if(a.x<=b.x){x1=a.x+nodeW;x2=b.x;} else {x1=a.x;x2=b.x+nodeW;}
+      const mx=(x1+x2)/2, st=estyle(ed.kind), dim=(!on(ed.from)||!on(ed.to))?' dim':'';
+      e+=`<path class="fedge${dim}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${st.c}" stroke-width="1.6"${st.d?` stroke-dasharray="${st.d}"`:''}/>`;
+      if(ed.key) e+=`<text class="vlkey${dim}" x="${mx}" y="${(y1+y2)/2-3}" text-anchor="middle">${esc(ed.key)}</text>`;});
+    let nraw='';
+    [...shownSet].forEach(id=>{const p=pos[id],n=byId[id]; if(!p)return;
+      const col=(typeColor(n.type).trim()||'#888'), dim=on(id)?'':' dim';
+      const t=titleOf(id),tt=t.length>25?t.slice(0,24)+'…':t;
+      const s=subOf(id),ss=s.length>28?s.slice(0,27)+'…':s;
+      nraw+=`<g class="fnode${dim}" data-sid="${esc(id)}"><title>${esc(t)} · ${esc(n.type)}</title>
+        <rect class="box" x="${p.x}" y="${p.y}" width="${nodeW}" height="${nodeH}" rx="8" fill="var(--panel)" stroke="${col}" stroke-width="1.3"/>
+        <rect x="${p.x}" y="${p.y}" width="5" height="${nodeH}" rx="2" fill="${col}"/>
+        <text class="ttl" x="${p.x+13}" y="${p.y+15}">${esc(tt)}</text>
+        <text class="sub" x="${p.x+13}" y="${p.y+29}">${esc(ss)}</text></g>`;});
+    let hdr='';
+    COLHDR.forEach((h,ci)=>{const x=padX+ci*colW;
+      hdr+=`<text class="vlcolhdr" x="${x}" y="22">${esc(h)}</text><text class="vlcolcnt" x="${x}" y="38">(${cols[ci].length})</text>`;});
+    document.getElementById('vlwrap').innerHTML=
+      `<svg class="lin" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${hdr}${e}${nraw}</svg>`;
+    document.querySelectorAll('#vlwrap .fnode').forEach(g=>g.onclick=()=>vlClickNode(g.dataset.sid));
+  }
+  return {render,shownId};
+})();
+let vlMode='full';
+const VLMODES={
+  full:{dir:null,types:null,hint:'Every source → table → measure → visual. Use the other tabs to isolate one thread.'},
+  visual:{dir:'up',types:['Visual','Page'],hint:'Pick a visual or page to light up everything upstream that feeds it.'},
+  source:{dir:'down',types:['Source'],hint:'Pick a data source to light up everything downstream it feeds.'},
+  impact:{dir:'down',types:null,hint:'Pick any object to see its full downstream impact — what breaks if you change it.'},
+  column:{dir:'down',types:['Column','Calculated Column'],hint:'Pick a column to see every measure and visual it flows into.'}
+};
+function vlTrace(anchorId,dir){
+  const adj=dir==='up'?bak:fwd, seen=new Set([anchorId]), st=[anchorId];
+  while(st.length){const x=st.pop();(adj[x]||[]).forEach(e=>{if(!seen.has(e.id)){seen.add(e.id);st.push(e.id);}});}
+  const lit=new Set(); seen.forEach(x=>{const s=VL.shownId(x); if(s)lit.add(s);}); return lit;
+}
+function vlApply(){
+  const m=VLMODES[vlMode];
+  if(!m.types){VL.render(null);return;}
+  const id=document.getElementById('vlanchor').value;
+  if(!id){VL.render(new Set());return;}
+  const lit=vlTrace(id,m.dir); const s=VL.shownId(id); if(s)lit.add(s);
+  VL.render(lit);
+}
+function vlClickNode(sid){
+  const m=VLMODES[vlMode]; if(!m.types) return;
+  const n=byId[sid]; if(!n||!m.types.includes(n.type)) return;
+  document.getElementById('vlanchor').value=sid; vlApply();
+}
+function vlFillAnchor(){
+  const m=VLMODES[vlMode], sel=document.getElementById('vlanchor');
+  document.getElementById('vlhint').textContent=m.hint;
+  if(!m.types){sel.style.display='none'; VL.render(null); return;}
+  sel.style.display='';
+  const opts=NODES.filter(n=>m.types.includes(n.type))
+    .sort((a,b)=>a.type.localeCompare(b.type)||a.label.localeCompare(b.label));
+  sel.innerHTML=opts.map(n=>`<option value="${esc(n.id)}">${esc(n.label)} · ${esc(n.type)}</option>`).join('')
+    || '<option value="">(none in this model)</option>';
+  vlApply();
+}
+function buildVisualLineage(){
+  document.querySelectorAll('#vlsubtabs .subtab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('#vlsubtabs .subtab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); vlMode=t.dataset.mode; vlFillAnchor();});
+  document.getElementById('vlanchor').addEventListener('change',vlApply);
+  vlFillAnchor();
+}
+
+/* ---------- tabs + wiring ---------- */
+document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('view-'+tab.dataset.view).classList.add('active');
+});
+document.getElementById('qt').addEventListener('input',buildTables);
+document.getElementById('qs').addEventListener('input',buildSourceMap);
+document.getElementById('qv').addEventListener('input',buildVisuals);
+['q','ftype'].forEach(id=>document.getElementById(id).addEventListener('input',renderList));
+document.getElementById('orphans').addEventListener('change',renderList);
+cards();fillTypes();buildTables();buildSourceMap();buildVisuals();buildSecurity();buildVisualLineage();renderList();defaultSelect();
+(function(){var r=document.documentElement,b=document.getElementById('themebtn');if(!b)return;
+  function p(){var d=r.getAttribute('data-theme')==='dark';b.querySelector('.ico').textContent=d?'☀️':'🌙';b.querySelector('.lbl').textContent=d?'Light':'Dark';}
+  p();b.onclick=function(){var n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);try{localStorage.setItem('pbai-theme',n);}catch(e){}p();};})();
+</script>
+</body>
+</html>

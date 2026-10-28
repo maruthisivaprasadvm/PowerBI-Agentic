@@ -1,0 +1,21 @@
+table 'Time Intelligence'
+
+	calculationGroup
+		precedence: 10
+
+		calculationItem Current = SELECTEDMEASURE()
+
+		calculationItem YTD = CALCULATE(SELECTEDMEASURE(), DATESYTD('Date'[Date]))
+
+		calculationItem MTD =
+				CALCULATE(
+				    SELECTEDMEASURE(),
+				    DATESMTD('Date'[Date])
+				)
+
+		calculationItem 'YoY %' = DIVIDE([Total Sales] - CALCULATE([Total Sales], DATEADD('Date'[Date], -1, YEAR)), [Total Sales])
+
+	column 'Time Calculation'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Name

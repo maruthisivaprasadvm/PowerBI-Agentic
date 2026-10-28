@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Performance Analyzer Report — {{EXPORT_NAME}}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#f4f7f9;--panel:#ffffff;--panel2:#eef2f6;--ink:#1f2a37;--body:#3c4858;--muted:#64748b;--line:#e4e9ef;
+    --dax:#2563eb;--render:#b7791f;--other:#64748b;--dq:#d97706;--accent:#0f9d8f;--accent-dark:#0b7d72;--soft:#e6f6f4;
+    --pass:#1aa06d;--fail:#e04f5f;
+    --s1:#6b7fd7;--s2:#2563eb;--s3:#b7791f;--s4:#d97706;--s5:#e04f5f;
+    --shadow:0 1px 2px rgba(16,42,67,.04),0 6px 20px rgba(16,42,67,.06);
+    --font:'Inter',-apple-system,'Segoe UI',system-ui,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--body);line-height:1.5}
+  header{padding:22px 28px;background:linear-gradient(100deg,var(--accent),var(--accent-dark));color:#fff;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:20px;color:#fff;font-weight:800}
+  header .sub{color:rgba(255,255,255,.88);font-size:13px;margin-top:6px}
+  header .sub b{color:#fff}
+  .wrap{padding:20px 28px;max-width:1320px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card .n{font-size:28px;font-weight:800;line-height:1;color:var(--ink)}
+  .card .l{color:var(--muted);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.6px}
+  .card.fail .n{color:var(--fail)} .card.dax .n{color:var(--dax)} .card.render .n{color:var(--render)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .panel h3{margin:0 0 14px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:12px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .vbar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12.5px}
+  .vbar .name{width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .vbar .track{flex:1;background:var(--panel2);border-radius:6px;height:18px;overflow:hidden;display:flex}
+  .vbar .d{background:var(--dax);height:100%} .vbar .r{background:var(--render);height:100%} .vbar .o{background:var(--other);height:100%}
+  .vbar .val{width:86px;text-align:right}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  th,td{text-align:left;padding:10px 13px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.6px;cursor:pointer;user-select:none;background:var(--panel2)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--soft)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .b-pass{background:rgba(40,199,111,.15);color:var(--pass)}
+  .b-fail{background:rgba(255,91,110,.15);color:var(--fail)}
+  .sev{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
+  .s1{background:var(--s1)}.s2{background:var(--s2)}.s3{background:var(--s3)}.s4{background:var(--s4)}.s5{background:var(--s5)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .controls input,.controls select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .controls input{flex:1;min-width:200px}
+  details summary{cursor:pointer;color:var(--accent-dark);font-size:12px;font-weight:600}
+  pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink);
+    font-size:11.5px;overflow:auto;max-height:260px;white-space:pre-wrap;margin:6px 0 0}
+  .muted{color:var(--muted);font-size:12px}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:11px;color:var(--muted)}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Power BI — Performance Analyzer Report</h1>
+  <div class="sub">Export: <b>{{EXPORT_NAME}}</b> &nbsp;·&nbsp; Schema version: <b>{{VERSION}}</b>
+    &nbsp;·&nbsp; Generated: <b>{{RUN_TIMESTAMP}}</b></div>
+</header>
+
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h3>Top visuals by total time</h3>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--dax)"></span>DAX query</span>
+      <span><span class="sw" style="background:var(--render)"></span>Visual display</span>
+      <span><span class="sw" style="background:var(--other)"></span>Other</span>
+    </div>
+    <div id="topbars"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Performance rules</h3>
+    <table id="rules"><thead><tr>
+      <th>Status</th><th>Sev</th><th>Category</th><th>Rule</th><th class="num">Threshold</th>
+      <th class="num">Offenders</th><th>Details / remediation</th>
+    </tr></thead><tbody id="rulesBody"></tbody></table>
+  </div>
+
+  <div class="panel">
+    <h3>Per-visual breakdown</h3>
+    <div class="controls">
+      <input id="q" placeholder="Search visual title or type…" />
+      <select id="fdq"><option value="">All visuals</option><option value="dq">DirectQuery only</option></select>
+    </div>
+    <table id="visuals"><thead><tr>
+      <th data-k="title">Visual</th><th data-k="visualType">Type</th>
+      <th class="num" data-k="daxMs">DAX ms</th><th class="num" data-k="renderMs">Display ms</th>
+      <th class="num" data-k="otherMs">Other ms</th><th class="num" data-k="totalMs">Total ms</th>
+      <th class="num" data-k="rowCount">Rows</th><th>Query</th>
+    </tr></thead><tbody id="visualsBody"></tbody></table>
+  </div>
+</div>
+
+<footer>Generated by the Power BI Agentic Performance Analyzer agent · format per
+  microsoft/powerbi-desktop-samples Performance Analyzer</footer>
+
+<script>
+const VISUALS = {{VISUALS_JSON}};
+const RESULTS = {{RESULTS_JSON}};
+const SUMMARY = {{SUMMARY_JSON}};
+
+const esc = t => (''+(t==null?'':t)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const ms = n => (n==null?'':Math.round(n).toLocaleString());
+
+function cards(){
+  const failed = RESULTS.filter(r=>r.status==='Fail').length;
+  document.getElementById('cards').innerHTML = `
+    <div class="card"><div class="n">${SUMMARY.visualCount}</div><div class="l">Visuals measured</div></div>
+    <div class="card"><div class="n">${ms(SUMMARY.slowestMs)}</div><div class="l">Slowest visual (ms)</div></div>
+    <div class="card dax"><div class="n">${ms(SUMMARY.totalDaxMs)}</div><div class="l">Total DAX (ms)</div></div>
+    <div class="card render"><div class="n">${ms(SUMMARY.totalRenderMs)}</div><div class="l">Total display (ms)</div></div>
+    <div class="card fail"><div class="n">${failed}</div><div class="l">Rules failed</div></div>`;
+}
+function topbars(){
+  const data=[...VISUALS].sort((a,b)=>b.totalMs-a.totalMs).slice(0,15);
+  const max=Math.max(1,...data.map(v=>v.totalMs));
+  document.getElementById('topbars').innerHTML=data.map(v=>{
+    const w=t=>`${t/max*100}%`;
+    return `<div class="vbar"><span class="name" title="${esc(v.title)}">${esc(v.title)}</span>
+      <span class="track"><span class="d" style="width:${w(v.daxMs)}"></span>
+      <span class="r" style="width:${w(v.renderMs)}"></span>
+      <span class="o" style="width:${w(v.otherMs)}"></span></span>
+      <span class="val">${ms(v.totalMs)} ms</span></div>`;}).join('') || '<div class="muted">No visuals found.</div>';
+}
+function rulesTable(){
+  const rows=[...RESULTS].sort((a,b)=>(b.status==='Fail')-(a.status==='Fail') || b.severity-a.severity);
+  document.getElementById('rulesBody').innerHTML=rows.map(r=>{
+    const off=(r.offenders&&r.offenders.length)
+      ? `<details><summary>${r.offenders.length} offender(s)</summary><div class="muted">`
+        + r.offenders.slice(0,40).map(o=>`${esc(o.visual)} — <b>${ms(o.value)}${o.unit||''}</b>`).join('<br>')
+        + (r.offenders.length>40?`<br>…and ${r.offenders.length-40} more`:'')+`</div></details>`
+      : '';
+    const det=`<div class="muted">${esc(r.description)}</div>`
+      + (r.status==='Fail'?`<details><summary>remediation</summary><div class="muted">${esc(r.remediation||'')}</div></details>`:'');
+    return `<tr>
+      <td><span class="badge ${r.status==='Fail'?'b-fail':'b-pass'}">${r.status}</span></td>
+      <td><span class="sev s${r.severity}">${r.severity}</span></td>
+      <td>${esc(r.category)}</td>
+      <td><b>${esc(r.name)}</b><div class="muted" style="opacity:.6">${esc(r.id)}</div></td>
+      <td class="num">${esc(r.operator)} ${ms(r.threshold)}${r.unit||''}</td>
+      <td class="num">${r.offenders?r.offenders.length:0}</td>
+      <td>${off}${det}</td></tr>`;}).join('');
+}
+let sortKey='totalMs',sortDir=-1;
+function visualsTable(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const fdq=document.getElementById('fdq').value;
+  let data=VISUALS.filter(v=>{
+    if(q && !((v.title+' '+v.visualType).toLowerCase().includes(q))) return false;
+    if(fdq==='dq' && !(v.directQueryCount>0)) return false;
+    return true;});
+  data.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return (x>y?1:x<y?-1:0)*sortDir;});
+  document.getElementById('visualsBody').innerHTML=data.map(v=>{
+    const dq=v.directQueryCount>0?` <span class="pill">DQ ×${v.directQueryCount}</span>`:'';
+    const query=v.queryText?`<details><summary>DAX</summary><pre>${esc(v.queryText)}</pre></details>`:'<span class="muted">—</span>';
+    return `<tr>
+      <td><b>${esc(v.title)}</b>${dq}</td><td class="muted">${esc(v.visualType||'')}</td>
+      <td class="num">${ms(v.daxMs)}</td><td class="num">${ms(v.renderMs)}</td>
+      <td class="num">${ms(v.otherMs)}</td><td class="num"><b>${ms(v.totalMs)}</b></td>
+      <td class="num">${v.rowCount!=null?ms(v.rowCount):''}</td><td>${query}</td></tr>`;}).join('')
+      || `<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">No visuals match.</td></tr>`;
+}
+document.querySelectorAll('#visuals th[data-k]').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;sortDir=(k===sortKey)?-sortDir:-1;sortKey=k;visualsTable();});
+['q','fdq'].forEach(id=>document.getElementById(id).addEventListener('input',visualsTable));
+cards();topbars();rulesTable();visualsTable();
+</script>
+</body>
+</html>

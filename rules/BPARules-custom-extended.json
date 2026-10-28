@@ -1,0 +1,123 @@
+[
+  {
+    "ID": "PROVIDE_DESCRIPTION_MEASURES",
+    "Name": "Provide descriptions for visible measures",
+    "Category": "Metadata",
+    "Description": "Every visible measure should have a Description explaining its calculation, business meaning and caveats. Descriptions power tooltips, data dictionaries and are critical for Copilot / Q&A and AI readiness.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "IsVisible and string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io; solvingmicrosoft365.com; powerbiconsulting.com; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "PROVIDE_DESCRIPTION_COLUMNS",
+    "Name": "Provide descriptions for visible columns",
+    "Category": "Metadata",
+    "Description": "Visible columns should document their business meaning. Column descriptions improve self-service discoverability and help AI tools interpret the model correctly.",
+    "Severity": 1,
+    "Scope": "DataColumn, CalculatedColumn, CalculatedTableColumn",
+    "Expression": "IsVisible and string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io; solvingmicrosoft365.com"
+  },
+  {
+    "ID": "PROVIDE_DESCRIPTION_TABLES",
+    "Name": "Provide descriptions for visible tables",
+    "Category": "Metadata",
+    "Description": "Each visible table should have a Description stating what it represents and its grain (e.g. 'Fact Sales at order-line level'). Grain/purpose documentation is essential for correct analysis and AI interpretation.",
+    "Severity": 1,
+    "Scope": "Table",
+    "Expression": "IsVisible and string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io"
+  },
+  {
+    "ID": "AVOID_CALCULATED_COLUMNS",
+    "Name": "Minimize calculated columns (prefer measures or Power Query)",
+    "Category": "Performance",
+    "Description": "Calculated columns are stored uncompressed-friendly and increase model size. Prefer DAX measures for aggregations and compute static row attributes in Power Query / the source. Review every calculated column to confirm it is necessary.",
+    "Severity": 2,
+    "Scope": "CalculatedColumn",
+    "Expression": "true",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io; solvingmicrosoft365.com; powerbiconsulting.com; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "AVOID_BIDIRECTIONAL_RELATIONSHIPS",
+    "Name": "Avoid bi-directional relationships",
+    "Category": "Performance",
+    "Description": "Bi-directional cross-filtering adds ambiguity, can hurt performance and may produce incorrect results. Use single-direction (dimension-to-fact) filtering by default; justify and document any bi-directional relationship.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "CrossFilteringBehavior = \"BothDirections\"",
+    "CompatibilityLevel": 1200,
+    "Source": "powerbiconsulting.com; datacrafters.io; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "AVOID_MANYTOMANY_RELATIONSHIPS",
+    "Name": "Avoid many-to-many relationships",
+    "Category": "Performance",
+    "Description": "Many-to-many relationships can degrade performance and introduce aggregation ambiguity. Prefer a one-to-many design with a proper bridge/dimension table where possible.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "FromCardinality = \"Many\" and ToCardinality = \"Many\"",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io; solvingmicrosoft365.com"
+  },
+  {
+    "ID": "RELATIONSHIP_COLUMNS_INTEGER_KEY",
+    "Name": "Use integer keys in relationships",
+    "Category": "Performance",
+    "Description": "Relationship columns should be whole-number (integer) surrogate keys. String, DateTime or floating-point keys increase cardinality/memory and slow relationship scans. Replace natural text/date keys with integer surrogate keys.",
+    "Severity": 2,
+    "Scope": "Relationship",
+    "Expression": "FromColumn.DataType = \"String\" or FromColumn.DataType = \"DateTime\" or FromColumn.DataType = \"Double\"",
+    "CompatibilityLevel": 1200,
+    "Source": "powerbiconsulting.com; solvingmicrosoft365.com; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "MARK_DATE_TABLE",
+    "Name": "Mark calendar/date tables as a Date table",
+    "Category": "Metadata",
+    "Description": "A dedicated date/calendar table should be marked as a Date table (DataCategory = Time) so time-intelligence DAX works correctly. This flags tables that look like a calendar (contain date columns and are named Date/Calendar) but are not marked.",
+    "Severity": 2,
+    "Scope": "Table",
+    "Expression": "DataCategory <> \"Time\" and Columns.Any(it.DataType = \"DateTime\") and (Name.IndexOf(\"Date\", StringComparison.OrdinalIgnoreCase) >= 0 or Name.IndexOf(\"Calendar\", StringComparison.OrdinalIgnoreCase) >= 0)",
+    "CompatibilityLevel": 1200,
+    "Source": "powerbiconsulting.com; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "SET_GEO_DATA_CATEGORY",
+    "Name": "Set data category for geographic columns",
+    "Category": "Metadata",
+    "Description": "Visible columns that represent geography (Country, City, State, Postal/Zip, Latitude, Longitude, Region, Continent) should have the appropriate Data Category set so map visuals and Q&A interpret them correctly.",
+    "Severity": 1,
+    "Scope": "DataColumn, CalculatedColumn, CalculatedTableColumn",
+    "Expression": "IsVisible and string.IsNullOrWhitespace(DataCategory) and RegEx.IsMatch(Name, \"(?i)(country|city|state|province|postal|zip|latitude|longitude|region|continent)\")",
+    "CompatibilityLevel": 1200,
+    "Source": "datacrafters.io"
+  },
+  {
+    "ID": "AVOID_DATETIME_COLUMNS",
+    "Name": "Avoid DateTime columns (split Date and Time)",
+    "Category": "Performance",
+    "Description": "DateTime columns are high-cardinality and bloat the model. Where time-of-day is needed, split into a Date column and a Time column; otherwise use a Date type. Columns in a table marked as a Date table are excluded.",
+    "Severity": 2,
+    "Scope": "DataColumn, CalculatedColumn, CalculatedTableColumn",
+    "Expression": "DataType = \"DateTime\" and Table.DataCategory <> \"Time\"",
+    "CompatibilityLevel": 1200,
+    "Source": "powerbiconsulting.com; Christopher Wagner (LinkedIn)"
+  },
+  {
+    "ID": "SINGULAR_TABLE_NAMES",
+    "Name": "Use singular names for tables (heuristic)",
+    "Category": "Naming Conventions",
+    "Description": "Dimension/fact table names are conventionally singular (Customer, Product, Sale) rather than plural. Heuristic check: flags visible table names ending in 's' (excluding common non-plural endings such as -ss, -us, -is, -status, -analysis). Review for false positives.",
+    "Severity": 1,
+    "Scope": "Table",
+    "Expression": "IsVisible and RegEx.IsMatch(Name, \"(?i)[a-rt-z]s$\") and not RegEx.IsMatch(Name, \"(?i)(ss|us|is|status|analysis|series|species)$\")",
+    "CompatibilityLevel": 1200,
+    "Source": "solvingmicrosoft365.com"
+  }
+]

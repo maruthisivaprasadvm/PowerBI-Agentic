@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Node (used only for local testing of the Pyodide path)
+node_modules/
+
+# Generated reports — each embeds a FULL copy of the model it was built from
+# (table names, column names, M source servers, DAX). Never commit these.
+output/
+
+# User uploads to the local dashboard (may contain private .pbix/.pbip)
+dashboard/uploads/
+
+# Build artefact for the online app — rebuilt by `python web/build_web.py`
+# (and by the GitHub Pages workflow on every deploy).
+web/vendor/
+
+# Local backups
+_ProjectBackups/
+*.bak
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+
+# Binary Power BI files (can't be read in-browser; keep the repo lean)
+*.pbix

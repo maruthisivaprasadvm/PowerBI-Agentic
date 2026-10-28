@@ -1,0 +1,161 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "BPA: 1 · Setup MCP server (read-only)",
+      "detail": "Install/verify the powerbi-modeling MCP server and prerequisites (safe, no writes).",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/setup/Install-PowerBIModelingMCP.ps1"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "BPA: 2 · Setup MCP server (read-write)",
+      "detail": "Same as setup, but registers the server in read-write mode (writes still prompt).",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/setup/Install-PowerBIModelingMCP.ps1",
+        "-ReadWrite"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "BPA: Show how to run a report",
+      "detail": "Prints the exact @bpa-agent prompt to run (the analysis itself is agentic, not a shell command).",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-Command",
+        "Write-Host ''; Write-Host 'To run a Best Practice Analysis:' -ForegroundColor Cyan; Write-Host '  1. Open the .pbix in Power BI Desktop (keep it open).'; Write-Host '  2. In Claude Code chat, connect:  Connect to ''${input:pbixName}'' in Power BI Desktop'; Write-Host '  3. Then ask the BPA agent:'; Write-Host ''; Write-Host '     @bpa-agent run the Best Practice Analyzer on \"${input:pbixName}\" using the ${input:ruleSet} rule set' -ForegroundColor Yellow; Write-Host ''; Write-Host 'The report is written to output\\<model>\\<model>_<ruleset>_<timestamp>.html' -ForegroundColor Green"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+    },
+    {
+      "label": "BPA: Render report from results.json",
+      "detail": "Fill the HTML dashboard from a results JSON the agent produced (writes a timestamped report).",
+      "type": "process",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/scripts/render_report.py",
+        "${input:resultsJson}",
+        "${input:pbixName}",
+        "${input:ruleSet}"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+    },
+    {
+      "label": "BPA: Open latest report",
+      "detail": "Open the most recently generated report in your default browser.",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-Command",
+        "$f = Get-ChildItem -Path '${workspaceFolder}/output' -Recurse -Filter *.html -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if ($f) { Write-Host \"Opening $($f.FullName)\" -ForegroundColor Green; Start-Process $f.FullName } else { Write-Host 'No reports found in output/ yet. Run a BPA analysis first.' -ForegroundColor Yellow }"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+    },
+    {
+      "label": "BPA: Open workflow page",
+      "detail": "Open the visual workflow diagram (docs/workflow.html) in your default browser.",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-Command",
+        "Start-Process '${workspaceFolder}/docs/workflow.html'"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "Perf: Analyze Performance Analyzer export",
+      "detail": "Parse a Performance Analyzer .json export, evaluate perf rules, and write a timestamped HTML dashboard.",
+      "type": "process",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/scripts/render_perf_report.py",
+        "${input:perfExport}"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true }
+    },
+    {
+      "label": "Perf: Open workflow page",
+      "detail": "Open the Performance Analyzer visual workflow (docs/perf-workflow.html).",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-Command",
+        "Start-Process '${workspaceFolder}/docs/perf-workflow.html'"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "Dashboard: Launch web app",
+      "detail": "Start the main dashboard (Flask) at http://127.0.0.1:8000. Installs Flask if missing.",
+      "type": "process",
+      "command": "cmd",
+      "args": ["/c", "${workspaceFolder}\\dashboard\\run_dashboard.bat"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "pbixName",
+      "type": "promptString",
+      "description": "Power BI .pbix file name (must be open in Power BI Desktop)",
+      "default": "AI Summaries.pbix"
+    },
+    {
+      "id": "ruleSet",
+      "type": "pickString",
+      "description": "Which Best Practice rule set to use",
+      "options": ["PowerBI", "standard", "extended", "measurekiller", "PowerBI+extended", "standard+extended", "PowerBI+measurekiller", "all"],
+      "default": "PowerBI"
+    },
+    {
+      "id": "resultsJson",
+      "type": "promptString",
+      "description": "Path to the results JSON the BPA agent produced",
+      "default": "output/results.json"
+    },
+    {
+      "id": "perfExport",
+      "type": "promptString",
+      "description": "Path to a Power BI Performance Analyzer export (.json)",
+      "default": "samples/perf-export-sample.json"
+    }
+  ]
+}

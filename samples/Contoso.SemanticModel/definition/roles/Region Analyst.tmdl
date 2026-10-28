@@ -1,0 +1,5 @@
+role 'Region Analyst'
+	modelPermission: read
+
+	tablePermission Targets =
+			'Targets'[Category] = "Bikes"

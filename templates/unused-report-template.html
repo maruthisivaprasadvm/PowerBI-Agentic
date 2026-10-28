@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unused Artifacts — {{MODEL_NAME}}</title>
+<script>(function(){try{var t=localStorage.getItem('pbai-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#f6f4f1;--panel:rgba(255,255,255,.64);--panel2:rgba(255,255,255,.46);--ink:#252423;--body:#484644;--muted:#797775;--line:rgba(37,36,35,.14);
+    --unused:#d64550;--used:#107c10;--unused-bar:#f09bac;--used-bar:#6ccaa7;--accent:#f2c811;--accent-dark:#d9b300;--soft:rgba(242,200,17,.14);
+    --measure:#118dff;--column:#197278;--calccol:#d9b300;--calctable:#e66c37;--hier:#744ec2;--rel:#5f6b6d;
+    --grad:linear-gradient(100deg,#f2c811,#efa42a);--glass-brd:rgba(255,255,255,.72);--blur:14px;
+    --shadow:0 8px 28px rgba(37,36,35,.12),0 2px 8px rgba(37,36,35,.08);
+    --font:'Inter',-apple-system,'Segoe UI',system-ui,Arial,sans-serif;
+  }
+  [data-theme="dark"]{
+    --bg:#1b1a19;--panel:rgba(45,44,43,.54);--panel2:rgba(45,44,43,.38);--ink:#f3f2f1;--body:#d2d0ce;--muted:#a19f9d;--line:rgba(255,255,255,.14);
+    --unused:#ff6b74;--used:#5bc873;--unused-bar:#d57892;--used-bar:#3fae89;--accent:#f2c811;--accent-dark:#ffd633;--soft:rgba(242,200,17,.20);
+    --measure:#5ab0ff;--column:#35b0a0;--calccol:#e4c860;--calctable:#f0956a;--hier:#a98fe0;--rel:#9aa3a6;
+    --grad:linear-gradient(100deg,#f2c811,#e8a33d);--glass-brd:rgba(255,255,255,.14);
+    --shadow:0 10px 34px rgba(0,0,0,.46),0 2px 10px rgba(0,0,0,.32);
+  }
+  html{color-scheme:light;background:var(--bg)} [data-theme="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:transparent;color:var(--body);line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;z-index:-2;
+    background:linear-gradient(135deg,#fbf9f3,#f6f4f1 50%,#eef4fb)}
+  [data-theme="dark"] body::before{background:linear-gradient(135deg,#201f1e,#1b1a19 50%,#15202c)}
+  body::after{content:"";position:fixed;inset:-20% -10% auto -10%;height:90vh;z-index:-1;pointer-events:none;filter:blur(30px);
+    background:radial-gradient(42vw 42vw at 15% 12%,rgba(242,200,17,.30),transparent 60%),
+      radial-gradient(38vw 38vw at 85% 8%,rgba(17,141,255,.18),transparent 60%),
+      radial-gradient(44vw 40vw at 60% 70%,rgba(230,108,55,.14),transparent 62%)}
+  [data-theme="dark"] body::after{opacity:.5}
+  header,.card,.panel,table{backdrop-filter:blur(var(--blur)) saturate(140%);-webkit-backdrop-filter:blur(var(--blur)) saturate(140%)}
+  .card,.panel{border-color:var(--glass-brd)!important}
+  .themebtn{position:absolute;top:18px;right:24px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    padding:7px 13px;border-radius:999px;font:600 13px var(--font);color:#252423;background:rgba(255,255,255,.38);
+    border:1px solid rgba(37,36,35,.22);backdrop-filter:blur(10px);transition:.15s}
+  .themebtn:hover{background:rgba(255,255,255,.55)}
+  header{padding:22px 28px;position:relative;background:var(--grad);color:#252423;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:20px;color:#252423;font-weight:800}
+  header .sub{color:rgba(37,36,35,.78);font-size:13px;margin-top:6px}
+  header .sub b{color:#252423}
+  .wrap{padding:20px 28px;max-width:1200px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card .n{font-size:28px;font-weight:800;line-height:1;color:var(--ink)}
+  .card .l{color:var(--muted);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.5px}
+  .card.unused .n{color:var(--unused)} .card.used .n{color:var(--used)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .panel h3{margin:0 0 12px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+  .bar .name{width:150px;color:var(--muted)}
+  .bar .track{flex:1;background:var(--panel2);border-radius:6px;height:16px;overflow:hidden;display:flex}
+  .bar .u{background:var(--unused-bar);height:100%} .bar .k{background:var(--used-bar);height:100%}
+  .bar .val{width:90px;text-align:right}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .controls input,.controls select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .controls input{flex:1;min-width:200px}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  th,td{text-align:left;padding:10px 13px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.5px;cursor:pointer;user-select:none;background:var(--panel2)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--soft)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .b-unused{background:rgba(224,98,127,.14);color:var(--unused)}
+  .b-used{background:rgba(26,164,122,.14);color:var(--used)}
+  .typ{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;color:#fff}
+  .t-Measure{background:var(--measure)} .t-Column{background:var(--column)}
+  .t-Calculated.Column,.t-CalculatedColumn{background:var(--calccol)}
+  .t-Calculated.Table,.t-CalculatedTable{background:var(--calctable)}
+  .t-Hierarchy{background:var(--hier)} .t-Relationship{background:var(--rel);color:#fff}
+  .yes{color:var(--used);font-weight:700} .no{color:var(--unused);font-weight:700}
+  .muted{color:var(--muted);font-size:12px}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <button class="themebtn" id="themebtn" type="button" title="Switch light / dark theme">
+    <span class="ico">🌙</span><span class="lbl">Dark</span></button>
+  <h1>Power BI — Unused Artifacts Report</h1>
+  <div class="sub">Model: <b>{{MODEL_NAME}}</b> &nbsp;·&nbsp; Report: <b>{{PBIX_NAME}}</b>
+    &nbsp;·&nbsp; Generated: <b>{{RUN_TIMESTAMP}}</b></div>
+</header>
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+  <div class="panel"><h3>Unused vs used by artifact type</h3><div id="bars"></div></div>
+  <div class="panel">
+    <div class="controls">
+      <input id="q" placeholder="Search name or table…" />
+      <select id="ftype"><option value="">All types</option></select>
+      <select id="fstatus">
+        <option value="Unused">Unused only</option>
+        <option value="">All</option>
+        <option value="Used">Used only</option>
+      </select>
+    </div>
+    <table id="tbl"><thead><tr>
+      <th data-k="type">Type</th><th data-k="name">Artifact</th><th data-k="table">Table</th>
+      <th data-k="usedVisual">On visual</th><th data-k="usedModel">In model</th>
+      <th data-k="status">Status</th><th>Why</th>
+    </tr></thead><tbody id="tbody"></tbody></table>
+  </div>
+</div>
+<footer>Generated by the Power BI Agentic Unused Artifacts agent · model via local engine (ADOMD) · report usage parsed from the .pbix</footer>
+<script>
+const RECORDS = {{RECORDS_JSON}};
+const SUMMARY = {{SUMMARY_JSON}};
+const esc=t=>(''+(t==null?'':t)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const typClass=t=>'t-'+String(t).replace(/ /g,'');
+
+function cards(){
+  const c=SUMMARY.byType||{};
+  const order=['Measure','Column','Calculated Column','Calculated Table','Hierarchy','Relationship'];
+  let html=`<div class="card unused"><div class="n">${SUMMARY.totalUnused}</div><div class="l">Unused artifacts</div></div>
+    <div class="card"><div class="n">${SUMMARY.totalScanned}</div><div class="l">Scanned</div></div>`;
+  order.forEach(t=>{ if(c[t]) html+=`<div class="card"><div class="n" style="color:var(--unused)">${c[t].unused}</div><div class="l">${t}s unused</div></div>`;});
+  document.getElementById('cards').innerHTML=html;
+}
+function bars(){
+  const c=SUMMARY.byType||{};
+  const keys=Object.keys(c).filter(k=>c[k].total>0);
+  document.getElementById('bars').innerHTML=keys.map(k=>{
+    const {total,unused}=c[k], used=total-unused, mx=total||1;
+    return `<div class="bar"><span class="name">${esc(k)}</span>
+      <span class="track"><span class="u" style="width:${unused/mx*100}%"></span>
+      <span class="k" style="width:${used/mx*100}%"></span></span>
+      <span class="val">${unused} / ${total}</span></div>`;}).join('') || '<div class="muted">Nothing scanned.</div>';
+}
+function fillTypes(){
+  const sel=document.getElementById('ftype');
+  [...new Set(RECORDS.map(r=>r.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=o.textContent=t;sel.appendChild(o);});
+}
+let sortKey='type',sortDir=1;
+function rows(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const ft=document.getElementById('ftype').value, fs=document.getElementById('fstatus').value;
+  let data=RECORDS.filter(r=>{
+    if(q && !((r.name+' '+r.table).toLowerCase().includes(q))) return false;
+    if(ft && r.type!==ft) return false;
+    if(fs && r.status!==fs) return false;
+    return true;});
+  data.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return (x>y?1:x<y?-1:0)*sortDir;});
+  document.getElementById('tbody').innerHTML=data.map(r=>`<tr>
+    <td><span class="typ ${typClass(r.type)}">${esc(r.type)}</span></td>
+    <td><b>${esc(r.name)}</b></td><td class="muted">${esc(r.table||'')}</td>
+    <td class="${r.usedVisual?'yes':'no'}">${r.usedVisual?'yes':'no'}</td>
+    <td class="${r.usedModel?'yes':'no'}">${r.usedModel?'yes':'no'}</td>
+    <td><span class="badge ${r.status==='Unused'?'b-unused':'b-used'}">${r.status}</span></td>
+    <td class="muted">${esc(r.reason)}</td></tr>`).join('')
+    || `<tr><td colspan="7" class="muted" style="text-align:center;padding:26px">Nothing matches.</td></tr>`;
+}
+document.querySelectorAll('#tbl th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;sortDir=(k===sortKey)?-sortDir:1;sortKey=k;rows();});
+['q','ftype','fstatus'].forEach(id=>document.getElementById(id).addEventListener('input',rows));
+cards();bars();fillTypes();rows();
+(function(){var r=document.documentElement,b=document.getElementById('themebtn');if(!b)return;
+  function p(){var d=r.getAttribute('data-theme')==='dark';b.querySelector('.ico').textContent=d?'☀️':'🌙';b.querySelector('.lbl').textContent=d?'Light':'Dark';}
+  p();b.onclick=function(){var n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);try{localStorage.setItem('pbai-theme',n);}catch(e){}p();};})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+table Product
+
+	column ProductKey
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: ProductKey
+		isKey
+
+	column 'Product Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Product Name
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\data\Products.xlsx"), null, true),
+				    Products_Sheet = Source{[Item="Products",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(Products_Sheet, [PromoteAllScalars=true]),
+				    #"Renamed Columns" = Table.RenameColumns(#"Promoted Headers",{{"ProdKey", "ProductKey"}, {"Name", "Product Name"}, {"Cat", "Category"}})
+				in
+				    #"Renamed Columns"

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Reports · Power BI Agentic{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block body %}
+{% set TOOL_LABELS = {'BPA':'BPA','UnusedArtifacts':'Unused Artifacts','DataLineage':'Data Lineage','PerformanceAnalyzer':'Performance'} %}
+<div class="hero">
+  <h1>Reports</h1>
+  <p>Every generated report, newest first. Each is a self-contained HTML file kept per subject with
+     a timestamp, so history is preserved.</p>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Subject</th><th>File</th><th>Generated</th><th>Size</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for r in reports %}
+      <tr>
+        <td><span class="toolbadge {{ r.tool }}">{{ TOOL_LABELS.get(r.tool, r.tool) }}</span></td>
+        <td><b>{{ r.subject }}</b></td>
+        <td style="color:var(--muted);font-size:12.5px">{{ r.name }}</td>
+        <td style="color:var(--muted)">{{ r.when }}</td>
+        <td style="color:var(--muted)">{{ r.sizeKb }} KB</td>
+        <td><a class="btn ghost" href="{{ r.viewUrl }}" target="_blank">Open ↗</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="empty">No reports yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

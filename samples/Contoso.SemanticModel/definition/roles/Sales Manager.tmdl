@@ -1,0 +1,6 @@
+role 'Sales Manager'
+	modelPermission: read
+
+	tablePermission Product = 'Product'[Category] <> "Internal"
+
+	tablePermission Sales = RELATED('Product'[Category]) <> "Internal"

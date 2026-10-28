@@ -1,0 +1,20 @@
+table Customer
+
+	column CustomerKey
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: CustomerKey
+		isKey
+
+	column 'Customer Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+	partition Customer = m
+		mode: import
+		source =
+				let
+				    Source = #"Customer Source"
+				in
+				    Source

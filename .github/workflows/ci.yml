@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Vendor the online app (must succeed for Pages)
+        run: python web/build_web.py
+
+      - name: Smoke-test the parsers against the sample PBIP
+        run: |
+          python - <<'PY'
+          import json, tempfile, os, sys
+          sys.path.insert(0, "scripts")
+          import load_tmdl, build_lineage, find_unused_artifacts as unused, evaluate_bpa, render_report
+
+          model = load_tmdl.load("samples/Contoso.SemanticModel/definition")
+          fd, tmp = tempfile.mkstemp(suffix=".json"); os.close(fd)
+          open(tmp, "w", encoding="utf-8").write(json.dumps(model))
+
+          out, _, _, stats = build_lineage.run(tmp, "samples/Contoso.SemanticModel", "Contoso")
+          assert stats["nodes"] > 0 and stats["edges"] > 0, "lineage produced no graph"
+
+          _out, _recs, summary = unused.run(tmp, "samples/Contoso.SemanticModel", "Contoso")
+          assert summary["totalScanned"] > 0, "unused scanned nothing"
+
+          m = evaluate_bpa.load_model(tmp)
+          results = evaluate_bpa.evaluate(m, evaluate_bpa.load_rules("all"))
+          assert len(results) > 0, "BPA evaluated no rules"
+          render_report.render(results, "Contoso", "all")
+
+          print(f"OK — lineage {stats['nodes']} nodes / {stats['edges']} edges; "
+                f"unused scanned {summary['totalScanned']}; BPA {len(results)} rules")
+          PY

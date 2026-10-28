@@ -1,0 +1,53 @@
+table Sales
+
+	column OrderDate
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+	column ProductKey
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column 'Sales Amount'
+		dataType: decimal
+		summarizeBy: sum
+		sourceColumn: Sales Amount
+		formatString: \$#,0.00
+
+	column Quantity
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+	column Margin
+		dataType: decimal
+		summarizeBy: sum
+		sourceColumn: Margin
+
+	column Profit = [Sales Amount] - [Sales Amount] * 0.6
+		dataType: decimal
+		summarizeBy: sum
+
+	measure 'Total Sales' = SUM(Sales[Sales Amount])
+		formatString: \$#,0
+
+	measure 'Total Quantity' = SUM(Sales[Quantity])
+
+	measure 'Profit Margin %' = DIVIDE([Total Sales] - SUMX(Sales, Sales[Sales Amount]*0.6), [Total Sales])
+		formatString: 0.0%
+
+	partition Sales = m
+		mode: import
+		source = ```
+			let
+			    Source = Sql.Database("contoso.database.windows.net", "SalesDW"),
+			    dbo_FactSales = Source{[Schema="dbo",Item="FactSales"]}[Data],
+			    #"Removed Columns" = Table.RemoveColumns(dbo_FactSales,{"ModifiedDate","rowguid"}),
+			    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"SalesAmt", "Sales Amount"}, {"Qty", "Quantity"}}),
+			    #"Added Margin" = Table.AddColumn(#"Renamed Columns", "Margin", each [Sales Amount] * 0.2, type number),
+			    #"Changed Type" = Table.TransformColumnTypes(#"Added Margin",{{"Sales Amount", type number}})
+			in
+			    #"Changed Type"
+			```

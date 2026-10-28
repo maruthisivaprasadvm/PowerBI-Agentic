@@ -1,0 +1,21 @@
+table Targets
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Sales Target'
+		dataType: decimal
+		summarizeBy: sum
+		sourceColumn: Sales Target
+
+	partition Targets = m
+		mode: import
+		source = ```
+			let
+			    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W", BinaryEncoding.Base64), Compression.Deflate)), {"Category", "Sales Target"}),
+			    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Category", type text}, {"Sales Target", type number}})
+			in
+			    #"Changed Type"
+			```

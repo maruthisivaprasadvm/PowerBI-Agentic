@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BPA Report — {{MODEL_NAME}}</title>
+<script>(function(){try{var t=localStorage.getItem('pbai-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#f6f4f1; --panel:rgba(255,255,255,.64); --panel2:rgba(255,255,255,.46); --ink:#252423; --body:#484644; --muted:#797775;
+    --line:rgba(37,36,35,.14); --pass:#107c10; --fail:#d64550; --na:#797775; --ne:#e8a33d;
+    --pass-bar:#6ccaa7; --fail-bar:#f09bac;     /* soft pastel bar fills */
+    --s1:#118dff; --s2:#13a10e; --s3:#d9b300; --s4:#e66c37; --s5:#d64550;
+    --accent:#f2c811; --accent-dark:#d9b300; --soft:rgba(242,200,17,.14);
+    --grad:linear-gradient(100deg,#f2c811,#efa42a); --glass-brd:rgba(255,255,255,.72); --blur:14px;
+    --shadow:0 8px 28px rgba(37,36,35,.12),0 2px 8px rgba(37,36,35,.08);
+    --font:'Inter',-apple-system,'Segoe UI',system-ui,Arial,sans-serif;
+  }
+  [data-theme="dark"]{
+    --bg:#1b1a19; --panel:rgba(45,44,43,.54); --panel2:rgba(45,44,43,.38); --ink:#f3f2f1; --body:#d2d0ce; --muted:#a19f9d;
+    --line:rgba(255,255,255,.14); --pass:#5bc873; --fail:#ff6b74; --na:#a19f9d; --ne:#f5bf5f;
+    --pass-bar:#3fae89; --fail-bar:#d57892;     /* soft pastel bar fills (dark) */
+    --s1:#5ab0ff; --s2:#54c45a; --s3:#e4c860; --s4:#f0956a; --s5:#ff6b74;
+    --accent:#f2c811; --accent-dark:#ffd633; --soft:rgba(242,200,17,.20);
+    --grad:linear-gradient(100deg,#f2c811,#e8a33d); --glass-brd:rgba(255,255,255,.14);
+    --shadow:0 10px 34px rgba(0,0,0,.46),0 2px 10px rgba(0,0,0,.32);
+  }
+  html{color-scheme:light;background:var(--bg)} [data-theme="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:transparent;color:var(--body);line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;z-index:-2;
+    background:linear-gradient(135deg,#fbf9f3,#f6f4f1 50%,#eef4fb)}
+  [data-theme="dark"] body::before{background:linear-gradient(135deg,#201f1e,#1b1a19 50%,#15202c)}
+  body::after{content:"";position:fixed;inset:-20% -10% auto -10%;height:90vh;z-index:-1;pointer-events:none;filter:blur(30px);
+    background:radial-gradient(42vw 42vw at 15% 12%,rgba(242,200,17,.30),transparent 60%),
+      radial-gradient(38vw 38vw at 85% 8%,rgba(17,141,255,.18),transparent 60%),
+      radial-gradient(44vw 40vw at 60% 70%,rgba(230,108,55,.14),transparent 62%)}
+  [data-theme="dark"] body::after{opacity:.5}
+  header,.card,.panel,table{backdrop-filter:blur(var(--blur)) saturate(140%);-webkit-backdrop-filter:blur(var(--blur)) saturate(140%)}
+  .card,.panel{border-color:var(--glass-brd)!important}
+  .themebtn{position:absolute;top:18px;right:24px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+    padding:7px 13px;border-radius:999px;font:600 13px var(--font);color:#252423;background:rgba(255,255,255,.38);
+    border:1px solid rgba(37,36,35,.22);backdrop-filter:blur(10px);transition:.15s}
+  .themebtn:hover{background:rgba(255,255,255,.55)}
+  body{margin:0;font-family:var(--font);background:transparent;color:var(--body);line-height:1.5}
+  header{padding:22px 28px;position:relative;background:var(--grad);color:#252423;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:20px;letter-spacing:.3px;color:#252423;font-weight:800}
+  header .sub{color:rgba(37,36,35,.78);font-size:13px;margin-top:6px}
+  header .sub b{color:#252423}
+  .wrap{padding:20px 28px;max-width:1200px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card .n{font-size:30px;font-weight:800;line-height:1;color:var(--ink)}
+  .card .l{color:var(--muted);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.6px}
+  .card.pass .n{color:var(--pass)} .card.fail .n{color:var(--fail)}
+  .card.ne .n{color:var(--ne)} .card.na .n{color:var(--na)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .panel h3{margin:0 0 12px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+  .bar .name{width:170px;color:var(--muted)}
+  .bar .track{flex:1;background:var(--panel2);border-radius:6px;height:16px;overflow:hidden;display:flex}
+  .bar .fillp{background:var(--pass-bar);height:100%} .bar .fillf{background:var(--fail-bar);height:100%}
+  .bar .val{width:70px;text-align:right;color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .controls input,.controls select{background:var(--panel);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:13px}
+  .controls input{flex:1;min-width:200px}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  th,td{text-align:left;padding:11px 13px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.6px;cursor:pointer;user-select:none;background:var(--panel2)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--soft)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .b-pass{background:rgba(26,164,122,.14);color:var(--pass)}
+  .b-fail{background:rgba(224,98,127,.14);color:var(--fail)}
+  .b-na{background:rgba(124,134,168,.18);color:var(--na)}
+  .b-ne{background:rgba(245,166,35,.15);color:var(--ne)}
+  .sev{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:6px;font-weight:700;font-size:12px;color:#fff}
+  .s1{background:var(--s1)}.s2{background:var(--s2)}.s3{background:var(--s3)}.s4{background:var(--s4)}.s5{background:var(--s5)}
+  .viol{color:var(--muted);font-size:12px}
+  .viol code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--ink);border:1px solid var(--line);
+    font-family:Consolas,monospace;margin:1px 3px 1px 0;display:inline-block}
+  details summary{cursor:pointer;color:var(--accent-dark);font-weight:600}
+  .desc{color:var(--muted);font-size:12px;margin-top:4px;max-width:520px}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
+</style>
+</head>
+<body>
+<header>
+  <button class="themebtn" id="themebtn" type="button" title="Switch light / dark theme">
+    <span class="ico">🌙</span><span class="lbl">Dark</span></button>
+  <h1>Power BI — Best Practice Analyzer Report</h1>
+  <div class="sub">Model: <b>{{MODEL_NAME}}</b> &nbsp;·&nbsp; Rule set: <b>{{RULE_SET}}</b>
+    &nbsp;·&nbsp; Generated: <b>{{RUN_TIMESTAMP}}</b></div>
+</header>
+
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+
+  <div class="grid2">
+    <div class="panel"><h3>Pass vs Fail by category</h3><div id="catbars"></div></div>
+    <div class="panel"><h3>Failures by severity</h3><div id="sevbars"></div></div>
+  </div>
+
+  <div class="controls">
+    <input id="q" placeholder="Search rule name, category, or object…" />
+    <select id="fstatus">
+      <option value="">All statuses</option>
+      <option value="Fail">Fail</option>
+      <option value="Pass">Pass</option>
+      <option value="Pass (N/A)">Pass (N/A)</option>
+      <option value="Not Evaluated">Not Evaluated</option>
+    </select>
+    <select id="fcat"><option value="">All categories</option></select>
+    <select id="fsev">
+      <option value="">All severities</option>
+      <option value="5">5</option><option value="4">4</option><option value="3">3</option>
+      <option value="2">2</option><option value="1">1</option>
+    </select>
+  </div>
+
+  <table id="tbl">
+    <thead><tr>
+      <th data-k="status">Status</th>
+      <th data-k="severity">Sev</th>
+      <th data-k="category">Category</th>
+      <th data-k="name">Rule</th>
+      <th data-k="violationCount">Violations</th>
+      <th>Offending objects / remediation</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<footer>Generated by the Power BI Agentic BPA Agent · rules from
+  TabularEditor/BestPracticeRules</footer>
+
+<script>
+/* The BPA agent injects the results array here (one object per rule):
+   { id, name, category, severity, status, violationCount, violations:[...], description } */
+const RESULTS = {{RESULTS_JSON}};
+
+const badgeClass = s => s==='Fail'?'b-fail':s==='Not Evaluated'?'b-ne':s.startsWith('Pass (N/A')?'b-na':'b-pass';
+const esc = t => (''+t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function kpis(){
+  const t=RESULTS.length;
+  const p=RESULTS.filter(r=>r.status.startsWith('Pass')).length;
+  const f=RESULTS.filter(r=>r.status==='Fail').length;
+  const ne=RESULTS.filter(r=>r.status==='Not Evaluated').length;
+  document.getElementById('cards').innerHTML = `
+    <div class="card"><div class="n">${t}</div><div class="l">Total rules</div></div>
+    <div class="card pass"><div class="n">${p}</div><div class="l">Passed</div></div>
+    <div class="card fail"><div class="n">${f}</div><div class="l">Failed</div></div>
+    <div class="card ne"><div class="n">${ne}</div><div class="l">Not evaluated</div></div>
+    <div class="card"><div class="n">${t?Math.round(p/t*100):0}%</div><div class="l">Pass rate</div></div>`;
+}
+function catBars(){
+  const cats={};
+  RESULTS.forEach(r=>{const c=cats[r.category]=cats[r.category]||{p:0,f:0};
+    r.status==='Fail'?c.f++:c.p++;});
+  document.getElementById('catbars').innerHTML = Object.keys(cats).sort().map(c=>{
+    const {p,f}=cats[c], tot=p+f||1;
+    return `<div class="bar"><span class="name">${esc(c)}</span>
+      <span class="track"><span class="fillp" style="width:${p/tot*100}%"></span>
+      <span class="fillf" style="width:${f/tot*100}%"></span></span>
+      <span class="val">${p}✓ / ${f}✗</span></div>`;}).join('');
+}
+function sevBars(){
+  const sev={1:0,2:0,3:0,4:0,5:0};
+  RESULTS.filter(r=>r.status==='Fail').forEach(r=>{sev[r.severity]=(sev[r.severity]||0)+1;});
+  const max=Math.max(1,...Object.values(sev));
+  document.getElementById('sevbars').innerHTML=[5,4,3,2,1].map(s=>
+    `<div class="bar"><span class="name">Severity ${s}</span>
+      <span class="track"><span class="fillf" style="width:${sev[s]/max*100}%"></span></span>
+      <span class="val">${sev[s]}</span></div>`).join('');
+}
+function fillCatFilter(){
+  const sel=document.getElementById('fcat');
+  [...new Set(RESULTS.map(r=>r.category))].sort().forEach(c=>{
+    const o=document.createElement('option');o.value=o.textContent=c;sel.appendChild(o);});
+}
+let sortKey='severity', sortDir=-1;
+function rows(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const fs=document.getElementById('fstatus').value, fc=document.getElementById('fcat').value,
+        fv=document.getElementById('fsev').value;
+  let data=RESULTS.filter(r=>{
+    const hay=(r.name+' '+r.category+' '+(r.violations||[]).join(' ')).toLowerCase();
+    if(q&&!hay.includes(q))return false;
+    if(fs&&!(fs==='Pass'?r.status.startsWith('Pass'):r.status===fs))return false;
+    if(fc&&r.category!==fc)return false;
+    if(fv&&String(r.severity)!==fv)return false;
+    return true;});
+  data.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return (x>y?1:x<y?-1:0)*sortDir;});
+  document.getElementById('tbody').innerHTML=data.map(r=>{
+    const objs=(r.violations&&r.violations.length)
+      ? `<div class="viol">${r.violations.slice(0,50).map(v=>`<code>${esc(v)}</code>`).join('')}`
+        + (r.violations.length>50?` …and ${r.violations.length-50} more`:'')+`</div>`
+      : '';
+    const desc=r.description?`<details><summary>remediation</summary><div class="desc">${esc(r.description)}</div></details>`:'';
+    return `<tr>
+      <td><span class="badge ${badgeClass(r.status)}">${esc(r.status)}</span></td>
+      <td><span class="sev s${r.severity}">${r.severity}</span></td>
+      <td>${esc(r.category)}</td>
+      <td><b>${esc(r.name)}</b><div class="viol" style="opacity:.6">${esc(r.id||'')}</div></td>
+      <td>${r.violationCount||0}</td>
+      <td>${objs}${desc}</td></tr>`;}).join('')
+      || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:26px">No rules match the current filters.</td></tr>`;
+}
+document.querySelectorAll('#tbl th[data-k]').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k; sortDir=(k===sortKey)?-sortDir:-1; sortKey=k; rows();});
+['q','fstatus','fcat','fsev'].forEach(id=>document.getElementById(id).addEventListener('input',rows));
+kpis();catBars();sevBars();fillCatFilter();rows();
+(function(){var r=document.documentElement,b=document.getElementById('themebtn');if(!b)return;
+  function p(){var d=r.getAttribute('data-theme')==='dark';b.querySelector('.ico').textContent=d?'☀️':'🌙';b.querySelector('.lbl').textContent=d?'Light':'Dark';}
+  p();b.onclick=function(){var n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);try{localStorage.setItem('pbai-theme',n);}catch(e){}p();};})();
+</script>
+</body>
+</html>

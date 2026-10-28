@@ -1,0 +1,12 @@
+relationship Sales_Product
+	fromColumn: Sales.ProductKey
+	toColumn: Product.ProductKey
+
+relationship Sales_Date
+	fromColumn: Sales.OrderDate
+	toColumn: Date.Date
+
+relationship Targets_Product
+	fromColumn: Targets.Category
+	toColumn: Product.Category
+	isActive: false

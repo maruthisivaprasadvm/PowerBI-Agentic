@@ -1,0 +1,30 @@
+table 'Measure Selector'
+
+	column 'Measure Selector'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Value1]
+		extendedProperty ParameterMetadata =
+				{"version":3,"kind":2}
+
+	column 'Measure Selector Fields'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Value2]
+
+	column 'Measure Selector Order'
+		dataType: int64
+		isHidden
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	partition 'Measure Selector' = calculated
+		mode: import
+		source = ```
+			{
+			    ("Total Sales", NAMEOF('Sales'[Total Sales]), 0),
+			    ("Total Quantity", NAMEOF('Sales'[Total Quantity]), 1),
+			    ("Profit Margin %", NAMEOF('Sales'[Profit Margin %]), 2)
+			}
+			```

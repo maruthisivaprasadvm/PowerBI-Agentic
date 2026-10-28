@@ -1,0 +1,16 @@
+model Contoso
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+
+annotation PBI_QueryOrder = ["Sales","Product","Date","Targets"]
+
+ref table Sales
+ref table Product
+ref table Date
+ref table Targets
+ref table Customer
+ref table 'Time Intelligence'
+ref table 'Measure Selector'
+
+ref role 'Sales Manager'
+ref role 'Region Analyst'

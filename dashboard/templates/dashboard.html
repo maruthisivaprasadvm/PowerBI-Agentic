@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Power BI Agentic{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block body %}
+<div class="hero">
+  <h1>Power BI Agentic — Control Center</h1>
+  <p>Pick an agent, browse to a <b>.pbix</b> or <b>.pbip</b> model, and run it. Each agent works on its
+     own — run one at a time and open its report when it's done.</p>
+</div>
+
+<!-- Step 1 (agents) — full width -->
+<div class="card">
+  <div class="step-head">
+    <span class="step-no">1</span>
+    <div><div class="step-kicker">Step 1</div><h2>Run an agent</h2></div>
+  </div>
+  <div class="hint">Browse to your model for the agent you want, then press <b>Run</b>.
+    Agents run <b>one at a time</b>.</div>
+  <div class="agents" id="agents"><!-- rendered by JS --></div>
+</div>
+
+<!-- How it works — moved to the bottom -->
+<div class="card">
+  <h2>⚙️ How it works — 3 ways to read the model</h2>
+  <div class="howgrid">
+    <div class="note">
+      <b>1. PBIP / TMDL (fully offline).</b> Choose a <code>.pbip</code>/<code>.zip</code> or type a folder
+      path. The model is parsed straight from TMDL <b>text</b> — no Power BI Desktop, no engine. A binary
+      <code>.pbix</code> can't be read this way (its model is a VertiPaq image), so
+      <b>File → Save as → Power BI Project (.pbip)</b> once to unlock it.
+    </div>
+    <div class="note">
+      <b>2. Already open.</b> If the model is open in Power BI Desktop, the dashboard reads it live from
+      the local engine (ADOMD) — this is tried automatically.
+    </div>
+    <div class="note warn">
+      <b>3. Launch for me.</b> Choose a <code>.pbix</code> with nothing open and the result offers
+      <b>“Launch Power BI Desktop &amp; run”</b> — it opens the file, reads it, and closes it.
+    </div>
+  </div>
+  <div class="note lock" style="margin-top:12px">
+    <b>🔒 Private &amp; local.</b> Every agent runs entirely on your own machine. Your
+    <code>.pbix</code>/<code>.pbip</code> is read and processed locally by this app —
+    <b>nothing is uploaded to, transmitted to, or stored on any external server or cloud service.</b>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
