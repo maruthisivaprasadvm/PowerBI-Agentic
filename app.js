@@ -82,10 +82,10 @@
       status('Loading the Python runtime (first run only, ~10&nbsp;MB)…', true);
       const py=await loadPyodide();
       status('Loading the analysis agents…', true);
-      const manifest=await (await fetch('vendor/manifest.json')).json();
-      // fetch every vendored file in parallel, then write to the in-memory FS
+      const manifest=await (await fetch('manifest.json')).json();
+      // fetch every parser/template/rule file in parallel, then write to the in-memory FS
       const files=await Promise.all(manifest.map(async rel=>
-        ({rel, buf:new Uint8Array(await (await fetch('vendor/'+rel)).arrayBuffer())})));
+        ({rel, buf:new Uint8Array(await (await fetch(rel)).arrayBuffer())})));
       for(const {rel,buf} of files){
         const dest='/app/'+rel, dir=dest.slice(0,dest.lastIndexOf('/'));
         py.FS.mkdirTree(dir); py.FS.writeFile(dest, buf);

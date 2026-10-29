@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """Power BI Agentic — main dashboard web app.
 
-A local Flask app that is the single entry point for both tools:
+A local Flask app that runs the agents against a Power BI model:
   - landing page with tool cards, file upload, agent selection + reorderable sequence, Execute;
-  - Performance Analyzer runs fully in-browser (upload export JSON -> report);
-  - BPA uses a hybrid bridge (needs the live engine): the app gives the exact @bpa-agent command
-    and shows the newest BPA report once the agent has produced it, and can render a BPA
-    results JSON the agent output;
-  - a Reports page listing every BPA and Performance Analyzer report.
+  - Data Lineage, Unused Artifacts and BPA run fully offline from a PBIP/TMDL folder, or against
+    a live / launched Power BI Desktop model;
+  - a Reports page listing every generated report.
 
 Run:
     python dashboard/app.py          # -> http://127.0.0.1:8000
@@ -27,7 +25,6 @@ from werkzeug.utils import secure_filename
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.render_perf_report import render as render_perf          # noqa: E402
 from scripts.render_report import render as render_bpa                # noqa: E402
 from scripts.evaluate_bpa import (load_model as bpa_load_model,       # noqa: E402
                                   load_rules as bpa_load_rules,
@@ -38,7 +35,6 @@ from scripts.load_tmdl import load as tmdl_load                       # noqa: E4
 
 EXTRACT_PS1 = ROOT / "scripts" / "extract_model_dmv.ps1"
 LAUNCH_PS1 = ROOT / "scripts" / "launch_and_extract.ps1"
-# Performance Analyzer code is kept, but hidden from the dashboard UI.
 UI_TOOLS = ("BPA", "UnusedArtifacts", "DataLineage")
 
 OUTPUT = ROOT / "output"
@@ -58,9 +54,8 @@ def _list_reports():
     items = []
     tool_pats = {"BPA": "BPA/**/*.html",
                  "UnusedArtifacts": "UnusedArtifacts/**/*.html",
-                 "DataLineage": "DataLineage/**/*.html",
-                 "PerformanceAnalyzer": "PerformanceAnalyzer/**/*.html"}
-    for tool in UI_TOOLS:                       # perf excluded from the UI listing (code kept)
+                 "DataLineage": "DataLineage/**/*.html"}
+    for tool in UI_TOOLS:
         pat = tool_pats[tool]
         for f in OUTPUT.glob(pat):
             st = f.stat()
@@ -89,11 +84,6 @@ def _latest_bpa_for(model_stem: str):
     f = files[0]
     return {"rel": _rel_output(f), "viewUrl": url_for("view_report", f=_rel_output(f)),
             "name": f.name}
-
-
-def _bpa_command(model_file: str, rule_set: str) -> str:
-    return (f'@bpa-agent run the Best Practice Analyzer on "{model_file}" '
-            f'using the {rule_set} rule set')
 
 
 # --------------------------------------------------------------------------- pages
@@ -132,7 +122,7 @@ def api_latest_bpa():
 @app.route("/execute", methods=["POST"])
 def execute():
     """Run the selected agents in the given order.
-    Form: steps = JSON list of {"agent":"perf"|"bpa"}, ruleSet, plus uploaded files."""
+    Form: steps = JSON list of {"agent":"bpa"|"unused"|"lineage"}, ruleSet, plus uploaded files."""
     try:
         steps = json.loads(request.form.get("steps", "[]"))
     except json.JSONDecodeError:
@@ -142,7 +132,7 @@ def execute():
     tmdl_path_field = (request.form.get("tmdlPath", "") or "").strip().strip('"')
 
     # Save uploads, routed by extension
-    pbix_files, perf_files, zip_files = [], [], []
+    pbix_files, zip_files = [], []
     for fs in request.files.getlist("files"):
         if not fs or not fs.filename:
             continue
@@ -153,8 +143,6 @@ def execute():
         low = name.lower()
         if low.endswith(".pbix"):
             pbix_files.append({"original": name, "path": dest})
-        elif low.endswith(".json"):
-            perf_files.append({"original": name, "path": dest})
         elif low.endswith((".zip", ".pbip")):
             zip_files.append({"original": name, "path": dest})
 
@@ -164,9 +152,7 @@ def execute():
     results = []
     for i, step in enumerate(steps, 1):
         agent = step.get("agent")
-        if agent == "perf":
-            results.append(_run_perf(i, perf_files))
-        elif agent == "bpa":
+        if agent == "bpa":
             results.append(_run_bpa(i, ctx, rule_set))
         elif agent == "unused":
             results.append(_run_unused(i, ctx))
@@ -354,40 +340,16 @@ def _run_bpa(seq, ctx, rule_set):
     return {
         "seq": seq, "agent": "bpa", "title": "Best Practice Analyzer",
         "status": "bridge", "model": model_file, "ruleSet": rule_set,
-        "canLaunch": bool(acq.get("needsLaunch")),
-        "command": _bpa_command(model_file, rule_set), "latest": latest,
+        "canLaunch": bool(acq.get("needsLaunch")), "latest": latest,
         "message": ((acq.get("error") or "No model open.") + " Use “Launch Power BI Desktop & "
                     "run”, open the .pbix yourself and Execute again, or upload a PBIP/TMDL "
                     "folder for a fully offline run."),
     }
 
 
-def _run_perf(seq, perf_files):
-    if not perf_files:
-        return {"seq": seq, "agent": "perf", "title": "Performance Analyzer",
-                "status": "error",
-                "message": "No Performance Analyzer export (.json) was uploaded. "
-                           "Export one from Power BI Desktop > Optimize > Performance Analyzer."}
-    out = []
-    for pf in perf_files:
-        try:
-            report_path, visuals, summary, rule_results = render_perf(str(pf["path"]))
-            failed = sum(1 for r in rule_results if r["status"] == "Fail")
-            out.append({
-                "export": pf["original"],
-                "viewUrl": url_for("view_report", f=_rel_output(report_path)),
-                "summary": summary, "rulesFailed": failed,
-            })
-        except Exception as e:  # noqa: BLE001
-            out.append({"export": pf["original"], "error": str(e)})
-    ok = any("viewUrl" in o for o in out)
-    return {"seq": seq, "agent": "perf", "title": "Performance Analyzer",
-            "status": "ok" if ok else "error", "runs": out}
-
-
 @app.route("/render-bpa-json", methods=["POST"])
 def render_bpa_json():
-    """Render a BPA report from a results JSON produced by @bpa-agent."""
+    """Render a BPA report from a pre-computed results JSON (array of rule objects)."""
     model = request.form.get("model", "model.pbix")
     rule_set = request.form.get("ruleSet", "all")
     payload = request.form.get("resultsJson", "").strip()

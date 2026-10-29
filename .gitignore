@@ -16,10 +16,6 @@ output/
 # User uploads to the local dashboard (may contain private .pbix/.pbip)
 dashboard/uploads/
 
-# Build artefact for the online app — rebuilt by `python web/build_web.py`
-# (and by the GitHub Pages workflow on every deploy).
-web/vendor/
-
 # Local backups
 _ProjectBackups/
 *.bak

@@ -5,10 +5,17 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Removed
+- The Claude-Code + Power BI **MCP agent path** (`.claude/`, `.mcp.json`, `setup/`, MCP setup docs,
+  `.vscode/tasks.json`) — the apps run the Python parsers directly.
+- The **Performance Analyzer** tool (`scripts/render_perf_report.py`, `rules/performance/`,
+  `templates/perf-report-template.html`, its instructions, sample and dashboard code).
+
 ### Added
-- **Online app** (`web/`): a static, client-side build that runs the agents in the browser via
-  Pyodide (Python → WebAssembly). Pick a PBIP folder or `.zip`; nothing is uploaded. Deployable to
-  GitHub Pages (`.github/workflows/deploy-web.yml`) or any static host.
+- **Online app** (repo root): a static, client-side build that runs the agents in the browser via
+  Pyodide (Python → WebAssembly). Pick a PBIP folder or `.zip`; nothing is uploaded. **Zero-config**
+  GitHub Pages deploy — `main` / `/ (root)`, no build step and no Action. The browser fetches the
+  parsers/templates/rules directly at their repo paths (listed in `manifest.json`).
 - **Visual Lineage** tab in the Data Lineage report — a 4-column source → table → measure → visual
   flow with Full / Visual / Source / Impact / Column trace modes.
 - Collapsible sections (Source Map, Visuals & Fields), collapsed by default.
