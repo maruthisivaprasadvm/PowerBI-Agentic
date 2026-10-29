@@ -13,9 +13,6 @@ node_modules/
 # (table names, column names, M source servers, DAX). Never commit these.
 output/
 
-# User uploads to the local dashboard (may contain private .pbix/.pbip)
-dashboard/uploads/
-
 # Local backups
 _ProjectBackups/
 *.bak

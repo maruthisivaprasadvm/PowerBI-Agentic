@@ -2,14 +2,14 @@
 
 ## Privacy model
 
-The **online app** (`web/`) runs entirely in the browser via Pyodide. Your Power BI files are read in
-the page and parsed in WebAssembly — **nothing is uploaded, transmitted, or stored on any server**.
+This is a **browser-only** app: it runs entirely client-side via Pyodide. Your Power BI files are read
+in the page and parsed in WebAssembly — **nothing is uploaded, transmitted, or stored on any server**.
 The only network request is for the Pyodide runtime and the app's own static assets.
 
-The **local app** (`dashboard/`) runs on `127.0.0.1` and reads files from your machine only. Generated
-reports (in `output/`) and uploads (in `dashboard/uploads/`) stay on disk and are git-ignored because
-they embed a full copy of the source model — treat them as sensitive and do not commit or share them
-without reviewing their contents.
+Reports you generate embed a **full copy of the source model** (table/column names, M source servers,
+DAX). They are produced in-browser and only saved if you download them — treat downloaded reports as
+sensitive and review them before sharing. If you run the parsers locally, the generated `output/` is
+git-ignored for the same reason.
 
 ## Reporting a vulnerability
 

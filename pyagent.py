@@ -2,13 +2,12 @@
 """In-browser agent bridge (runs inside Pyodide).
 
 The static web app writes the user's Power BI Project (PBIP/TMDL) files into the Pyodide
-virtual filesystem under a work dir, then calls `run(agent, workdir, model_name)`. We reuse
-the exact same pure-Python parsers the local app uses — nothing is uploaded; everything runs
-in the browser.
+virtual filesystem under a work dir, then calls `run(agent, workdir, model_name)`. It runs the
+pure-Python parsers from `scripts/` — nothing is uploaded; everything runs in the browser.
 
-Only the fully-offline PBIP/TMDL path is supported online: a browser cannot read a binary
-.pbix model (that needs the Power BI engine / Desktop). A PBIP project provides both the
-model (*.SemanticModel) and the report layer (*.Report) for visual usage.
+Only the fully-offline PBIP/TMDL path is supported: a browser cannot read a binary .pbix model
+(that needs the Power BI engine / Desktop). A PBIP project provides both the model
+(*.SemanticModel) and the report layer (*.Report) for visual usage.
 """
 import json
 import sys

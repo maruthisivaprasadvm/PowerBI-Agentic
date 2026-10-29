@@ -6,10 +6,13 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com).
 ## [Unreleased]
 
 ### Removed
+- The local **Flask dashboard** (`dashboard/`) and its Desktop-only helpers
+  (`requirements.txt`, `scripts/extract_model_dmv.ps1`, `scripts/launch_and_extract.ps1`) — this is
+  now a **pure online (browser-only) repo**.
 - The Claude-Code + Power BI **MCP agent path** (`.claude/`, `.mcp.json`, `setup/`, MCP setup docs,
-  `.vscode/tasks.json`) — the apps run the Python parsers directly.
+  `.vscode/tasks.json`) — the app runs the Python parsers directly.
 - The **Performance Analyzer** tool (`scripts/render_perf_report.py`, `rules/performance/`,
-  `templates/perf-report-template.html`, its instructions, sample and dashboard code).
+  `templates/perf-report-template.html`, its instructions and sample).
 
 ### Added
 - **Online app** (repo root): a static, client-side build that runs the agents in the browser via
@@ -27,8 +30,8 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com).
 - UI and report theming moved to the **Power BI Desktop palette** (gold accent, Fluent neutrals) as
   glassmorphism, with a light/dark toggle.
 - Softer, glass-friendly pass/fail chart bars.
-- Local dashboard served via a production WSGI server (waitress); Reports/history UI removed.
 
 ### Notes
-- Reading a binary `.pbix` model requires Power BI Desktop and is available only in the local app;
-  the online app is PBIP/TMDL-only (a browser cannot open a VertiPaq model).
+- The app is **PBIP/TMDL-only** — a browser cannot open a binary `.pbix` (its VertiPaq model needs
+  the Power BI engine). In Power BI Desktop use **File → Save as → Power BI Project (.pbip)** to unlock
+  a browser-readable project.
