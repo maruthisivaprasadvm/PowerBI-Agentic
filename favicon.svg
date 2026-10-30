@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bars" x1="16" y1="4" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2C811"/><stop offset="1" stop-color="#E08E0B"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2b2a28"/><stop offset="1" stop-color="#15202c"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7.5" fill="url(#bg)"/>
+  <!-- Power BI: three ascending bars -->
+  <rect x="18.5" y="7"  width="5.6" height="19" rx="1.5" fill="url(#bars)"/>
+  <rect x="11.2" y="12" width="5.6" height="14" rx="1.5" fill="url(#bars)" opacity=".92"/>
+  <rect x="3.9"  y="17" width="5.6" height="9"  rx="1.5" fill="url(#bars)" opacity=".8"/>
+  <!-- Agentic: AI sparkle -->
+  <path d="M24.3 2.6 l.95 2.15 2.15 .95 -2.15 .95 -.95 2.15 -.95 -2.15 -2.15 -.95 2.15 -.95 z" fill="#fff"/>
+</svg>

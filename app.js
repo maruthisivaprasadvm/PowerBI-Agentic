@@ -63,6 +63,17 @@
   $('folder').onchange=()=>{ const f=fromInput($('folder').files);
     if(f.length) setChosen(f, 'PBIP folder ('+(f[0].path.split('/')[0]||'folder')+')'); };
 
+  /* ---------- reset / home ---------- */
+  function resetApp(){
+    setChosen([]);                       // clears selection, results and status
+    const fi=$('folder'); if(fi) fi.value='';   // allow re-picking the same folder
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  $('homeBtn').onclick=resetApp;
+  const brand=$('brandHome');
+  brand.onclick=resetApp;
+  brand.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); resetApp(); } };
+
   const dz=$('drop');
   ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('drag');}));
   ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('drag');}));
@@ -142,8 +153,11 @@
     if(agent==='lineage') line=`${s.nodes||0} nodes · ${s.edges||0} edges · ${s.visuals||0} visuals`;
     else if(agent==='unused') line=`${s.totalScanned||0} scanned · ${s.totalUnused||0} unused`;
     else if(agent==='bpa') line=`${s.total||0} rules · ${s.passed||0} passed · ${s.failed||0} failed`;
-    card.innerHTML=`<div class="rez"><span class="pill ok">done</span> ${esc(line)}
-      · <a class="rep" href="#">Open report ↗</a></div>`;
+    card.innerHTML=`<div class="rez">
+      <span class="pill ok">done</span>
+      <span class="rez-stats">${esc(line)}</span>
+      <a class="rep" href="#">Open report ↗</a>
+    </div>`;
     card.querySelector('.rep').onclick=(ev)=>{ev.preventDefault();openReport(res.html,res.filename);};
   }
 

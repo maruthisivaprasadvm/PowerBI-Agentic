@@ -50,11 +50,17 @@ a{color:var(--accent-2)}
 
 .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
   padding:10px 20px;margin:10px auto;max-width:1120px;border-radius:999px}
-.brand{font-weight:800;color:var(--ink);font-size:17px;display:flex;align-items:center;gap:10px}
+.brand{font-weight:800;color:var(--ink);font-size:17px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;padding:5px 8px;margin:-5px -8px;border-radius:999px;transition:.15s}
+.brand:hover{background:var(--glass-soft)}
+.brand:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .brand-logo{flex:none;display:block}
-.theme-toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:6px 12px;border-radius:999px;
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn,.theme-toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:6px 12px;border-radius:999px;
   font:700 13px var(--font);color:var(--ink);background:var(--glass-soft);border:1px solid var(--glass-brd);transition:.15s}
-.theme-toggle:hover{background:var(--glass-strong)}
+.icon-btn:hover,.theme-toggle:hover{background:var(--glass-strong)}
+.icon-btn svg{display:block}
+@media(max-width:560px){.icon-btn .lbl,.theme-toggle .lbl{display:none}}
 
 .shell{max-width:1120px;margin:0 auto;padding:2px 22px 10px}
 .hero{padding:2px 6px 10px}
@@ -105,7 +111,12 @@ a{color:var(--accent-2)}
 .agent-desc{color:var(--muted);font-size:12px;line-height:1.45;flex:1;margin:0}
 .agent-card .btn{width:100%;justify-content:center;padding:8px 14px}
 .agent-result:empty{display:none}
-.agent-result .rez{margin-top:2px;font-size:12.5px;line-height:1.5}
+.agent-result .rez{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;
+  padding-top:10px;border-top:1px dashed var(--glass-brd-soft)}
+.agent-result .pill.ok{flex:none}
+.agent-result .rez-stats{font-size:12.5px;color:var(--body)}
+.agent-result .rep{margin-left:auto;font-weight:700;font-size:12.5px;white-space:nowrap;color:var(--accent-2);text-decoration:none}
+.agent-result .rep:hover{text-decoration:underline}
 .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
 .pill.ok{background:rgba(16,124,16,.14);color:var(--pass)}
 .pill.err{background:rgba(214,69,80,.14);color:var(--fail)}
