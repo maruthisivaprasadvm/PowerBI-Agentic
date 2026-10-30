@@ -25,3 +25,11 @@ Thumbs.db
 
 # Binary Power BI files (can't be read in-browser; keep the repo lean)
 *.pbix
+
+# One-off helper / scratch scripts (not part of the app)
+run_ai_summaries.py
+test_bookmarks.py
+
+# Power BI local cache & editor settings (not source; may hold private data)
+.pbi/
+*.abf

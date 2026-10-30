@@ -122,6 +122,24 @@
   .selhdr{font-size:15px;font-weight:700;margin-bottom:4px}
   .impact{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
   .impact .k{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px}
+  /* bookmarks panel */
+  .bmcount{font-size:13px;color:var(--muted);margin:2px 0 10px}
+  .bmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+  .bmcard{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:12px 14px}
+  .bmhdr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
+  .bmname{font-size:14px}
+  .bmhdr .k{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:11px}
+  .bmgrp{color:var(--accent-dark)}
+  .bmscope{font-size:11px;font-weight:700;border-radius:8px;padding:3px 8px;margin-left:auto}
+  .bmscope.all{background:rgba(46,125,50,.14);color:#2e7d32;border:1px solid rgba(46,125,50,.35)}
+  .bmscope.sel{background:rgba(2,119,189,.14);color:#0277bd;border:1px solid rgba(2,119,189,.35)}
+  .bmlist{list-style:none;margin:0;padding:0;font-size:13px;border-top:1px dashed var(--line)}
+  .bmlist li{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .bmlist li:last-child{border-bottom:none}
+  .bmv{font-weight:600}
+  .bmbadge{margin-left:auto;font-size:10px;font-weight:700;border-radius:6px;padding:2px 7px;text-transform:uppercase;letter-spacing:.03em}
+  .bmbadge.show{background:rgba(46,125,50,.14);color:#2e7d32;border:1px solid rgba(46,125,50,.35)}
+  .bmbadge.hide{background:rgba(198,40,40,.14);color:#c62828;border:1px solid rgba(198,40,40,.35)}
   button.btn{background:var(--accent);color:#252423;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer}
   button.btn:hover{background:var(--accent-dark)}
   /* graph */
@@ -199,6 +217,50 @@
   .exprchip .ek.param{background:rgba(217,119,6,.14);color:var(--Source)}
   .exprchip .ek.query{background:rgba(37,99,235,.14);color:var(--Measure)}
   .exprchip b{font-weight:700;color:var(--ink)} .exprchip .ev{color:var(--muted);font-family:Consolas,monospace}
+  /* DAX tab */
+  .daxbar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:4px 0 14px}
+  .daxbar label{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+  .daxbar select{font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+    background:var(--panel);color:var(--ink);min-width:220px;max-width:420px}
+  .daxbar #daxitemlabel{font-weight:700;color:var(--ink)}
+  pre.dax{white-space:pre-wrap;word-break:break-word;margin:0;font-family:Consolas,monospace;
+    font-size:12.5px;line-height:1.5;color:var(--ink)}
+  /* data model relationships */
+  .card .bd.nopad{padding:0}
+  table.reltable{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+  table.reltable col.c-arr{width:34px} table.reltable col.c-card{width:118px}
+  table.reltable col.c-xf{width:104px} table.reltable col.c-flow{width:25%}
+  table.reltable th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);font-weight:700;padding:9px 14px;border-bottom:1px solid var(--line);
+    background:var(--panel2);position:sticky;top:0}
+  table.reltable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;
+    word-break:break-word;overflow-wrap:anywhere}
+  table.reltable tbody tr:nth-child(even){background:color-mix(in srgb,var(--panel2) 55%,transparent)}
+  table.reltable tbody tr:hover{background:var(--soft)}
+  table.reltable tr:last-child td{border-bottom:none}
+  table.reltable td.arr{color:var(--accent);text-align:center;font-size:15px;font-weight:700}
+  /* two-line table·column cell */
+  .relcell .rt{display:flex;align-items:center;gap:7px;font-weight:700;line-height:1.3}
+  .relcell .rtn{overflow:hidden;text-overflow:ellipsis}
+  .relcell .rtn.auto,.ftbl.auto{color:var(--muted);font-style:italic;font-weight:600}
+  .relcell .rc{margin-left:16px;color:var(--muted);font-family:Consolas,monospace;font-size:11.5px;
+    line-height:1.4;margin-top:1px}
+  .relcard{display:inline-block;font-size:11px;font-weight:700;background:var(--panel2);
+    border:1px solid var(--line);border-radius:999px;padding:3px 11px;white-space:nowrap}
+  .xf{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:3px 11px;white-space:nowrap}
+  .xf.single{background:rgba(2,119,189,.14);color:#0277bd;border:1px solid rgba(2,119,189,.35)}
+  .xf.both{background:rgba(123,31,162,.14);color:#7b1fa2;border:1px solid rgba(123,31,162,.35)}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .ftbl{display:inline-block;max-width:100%;font-size:11.5px;font-weight:600;background:var(--panel2);
+    border:1px solid var(--line);border-radius:7px;padding:2px 8px;overflow:hidden;text-overflow:ellipsis}
+  .flowarr{color:var(--accent-dark);font-weight:700;font-size:15px;flex:none}
+  .relinactive{display:inline-block;font-size:10px;font-weight:700;color:#c62828;
+    border:1px solid rgba(198,40,40,.35);background:rgba(198,40,40,.1);border-radius:6px;
+    padding:1px 6px;margin-top:4px;margin-left:16px}
+  @media (max-width:860px){
+    table.reltable col.c-flow{width:auto}
+    table.reltable .c-card,table.reltable .c-xf{width:auto}
+  }
   footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
 </style>
 </head>
@@ -215,8 +277,9 @@
 
   <div class="tabs">
     <div class="tab active" data-view="tables">📋 Tables &amp; Columns</div>
+    <div class="tab" data-view="datamodel">🧩 Data Model</div>
     <div class="tab" data-view="vlineage">🗺️ Visual Lineage</div>
-    <div class="tab" data-view="sourcemap">🧬 Source Map</div>
+    <div class="tab" data-view="sourcemap">🧮 DAX</div>
     <div class="tab" data-view="visuals">📊 Visuals &amp; Fields</div>
     <div class="tab" data-view="explorer">🔎 Dependency Explorer</div>
     <div class="tab" data-view="security">🛡️ Security (RLS)</div>
@@ -228,21 +291,19 @@
     <div id="tablesWrap"></div>
   </div>
 
+  <!-- ===== Data Model view ===== -->
+  <div class="view" id="view-datamodel">
+    <input id="qr" placeholder="Filter by table or column…" />
+    <div id="relWrap"></div>
+  </div>
+
   <!-- ===== Visual Lineage view ===== -->
   <div class="view" id="view-vlineage">
-    <div class="help">
-      <b>Visual lineage</b> — the whole model as a left-to-right flow:
-      <b>data sources → tables → measures → visuals</b>. Each table shows its
-      <i>columns/measures</i> count; the measures column also carries
-      <b>field-parameter</b> fields (<span class="vltag fp">FP</span>) and
-      <b>calculation-group</b> items (<span class="vltag cg">Calc</span>).
-      Use the sub-tabs below to trace one thread and fade out the rest.
-    </div>
     <div class="subtabs" id="vlsubtabs">
       <div class="subtab active" data-mode="full">Full Lineage</div>
       <div class="subtab" data-mode="visual">Visual Trace</div>
       <div class="subtab" data-mode="source">Source Trace</div>
-      <div class="subtab" data-mode="impact">Impact Analysis</div>
+      <div class="subtab" data-mode="bookmarks">🔖 Bookmarks</div>
       <div class="subtab" data-mode="column">Column Impact</div>
     </div>
     <div class="vlbar">
@@ -258,20 +319,19 @@
     </div>
   </div>
 
-  <!-- ===== Source Map view ===== -->
+  <!-- ===== DAX view ===== -->
   <div class="view" id="view-sourcemap">
-    <div class="help">
-      <b>Where does each column come from?</b> This traces every model column back to its
-      <b>physical origin</b> by reading the table's Power Query (M) steps —
-      <span class="origin source">source</span> = a real column in the data source (shown with the
-      source table &amp; original column name, before any rename),
-      <span class="origin custom">custom</span> = a column built in Power Query,
-      <span class="origin calculated">calculated</span> = a DAX calculated column/table, and
-      <span class="origin unknown">unknown</span> = no M available (e.g. a live-engine read).
-    </div>
     <div id="exprPanel"></div>
-    <input id="qs" placeholder="Filter by table, column, source table or source column…" />
-    <div id="sourcemapWrap"></div>
+    <div class="daxbar">
+      <label>Show
+        <select id="daxkind">
+          <option value="measure">DAX Measures</option>
+          <option value="calccol">Calculated Columns</option>
+        </select></label>
+      <label><span id="daxitemlabel">Measure</span>
+        <select id="daxitem"></select></label>
+    </div>
+    <div id="daxexpr"></div>
   </div>
 
   <!-- ===== Visuals view ===== -->
@@ -282,14 +342,6 @@
 
   <!-- ===== Explorer view ===== -->
   <div class="view" id="view-explorer">
-    <div class="help">
-      <b>Pick any object</b> on the left to trace it both ways.
-      <span class="b-up">⬆ Upstream</span> = what it's <b>built from</b> (its columns, tables, and data source) —
-      follow it to find where a number comes from.
-      <span class="b-down">⬇ Downstream</span> = everything that <b>uses it</b> (other measures, visuals, pages) —
-      i.e. <b>what breaks if you change or delete it</b>.
-      Each line shows <i>how</i> two things connect (via a DAX reference, a relationship, a Power Query source, or a visual).
-    </div>
     <div class="wrap">
       <div>
         <div class="panel">
@@ -315,16 +367,10 @@
 
   <!-- ===== Security (RLS) view ===== -->
   <div class="view" id="view-security">
-    <div class="help">
-      <b>Row-Level Security.</b> Each <span class="origin role">role</span> restricts what users can
-      see. Below, every role lists the tables it filters, the <b>DAX filter</b> applied, and the
-      <b>columns</b> that filter depends on — so you can see at a glance what a role is built on
-      (and, from the Dependency Explorer, which roles a column change would affect).
-    </div>
     <div id="securityWrap"></div>
   </div>
 </div>
-<footer>Generated by the Power BI Agentic Data Lineage agent · model from PBIP/TMDL or the local engine (ADOMD) · report usage from the .pbix / .Report</footer>
+<footer>@Power BI Agentic By <a href="https://www.cloudbiexpert.com/" target="_blank" rel="noopener noreferrer">Maruthi Siva Prasad VM</a> · <a href="https://www.linkedin.com/in/maruthi-siva-prasad/" target="_blank" rel="noopener noreferrer">LinkedIn</a></footer>
 <script>
 const NODES = {{NODES_JSON}};
 const EDGES = {{EDGES_JSON}};
@@ -334,6 +380,10 @@ const ROLES = {{ROLES_JSON}};
 const CALCITEMS = {{CALCITEMS_JSON}};
 const FIELDPARAMS = {{FIELDPARAMS_JSON}};
 const EXPRESSIONS = {{EXPRESSIONS_JSON}};
+const BOOKMARKS = {{BOOKMARKS_JSON}};
+const MEASURES = {{MEASURES_JSON}};
+const CALCCOLUMNS = {{CALCCOLUMNS_JSON}};
+const RELATIONSHIPS = {{RELATIONSHIPS_JSON}};
 const esc=t=>(''+(t==null?'':t)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const byId={}; NODES.forEach(n=>byId[n.id]=n);
 const typeColor=t=>getComputedStyle(document.documentElement).getPropertyValue('--'+t.replace(/ /g,''))||'#888';
@@ -455,44 +505,87 @@ function buildExpressions(){
       Tables that reference a shared query are resolved to <b>its</b> data source below.</div>
     <div class="exprgrid">${params.map(chip).join('')}${queries.map(chip).join('')}</div></div>`;
 }
-function buildSourceMap(){
-  buildExpressions();
-  if(!SOURCEMAP.length){
-    document.getElementById('sourcemapWrap').innerHTML=
-      '<div class="empty">No column-level source information was available. Supply the model as a '
-      +'Power BI Project (.pbip/TMDL) so the Power Query (M) steps can be read.</div>';
+// auto-generated date tables carry long GUID names — show a readable label, keep full name on hover
+function relFriendly(name){
+  if(/^LocalDateTable_[0-9a-f-]+$/i.test(name)) return {short:'🕒 Auto date table', auto:true};
+  if(/^DateTableTemplate_[0-9a-f-]+$/i.test(name)) return {short:'🕒 Date template', auto:true};
+  return {short:name, auto:false};
+}
+function relCell(table,column){
+  const f=relFriendly(table);
+  const tbl=`<span class="rt" title="${esc(table)}"><span class="dot" style="background:${typeColor('Table')}"></span>`
+    +`<span class="rtn${f.auto?' auto':''}">${esc(f.short)}</span></span>`;
+  return `${tbl}<span class="rc">${esc(column||'—')}</span>`;
+}
+function relTag(table){
+  const f=relFriendly(table);
+  return `<span class="ftbl${f.auto?' auto':''}" title="${esc(table)}">${esc(f.short)}</span>`;
+}
+function buildDataModel(){
+  const wrap=document.getElementById('relWrap'); if(!wrap) return;
+  if(!RELATIONSHIPS.length){
+    wrap.innerHTML='<div class="empty">No relationships are defined in this model.</div>';
     return;
   }
-  const q=(document.getElementById('qs').value||'').toLowerCase();
-  const tables=Object.keys(smapByTable).sort((a,b)=>a.localeCompare(b));
-  let html='';
-  tables.forEach(tn=>{
-    let rows=smapByTable[tn].slice();
-    const tableMatch=!q||tn.toLowerCase().includes(q);
-    if(q && !tableMatch){
-      rows=rows.filter(r=>(r.column+' '+(r.sourceColumn||'')+' '+(r.sourceTable||'')+' '+(r.sourceLabel||''))
-        .toLowerCase().includes(q));
-      if(!rows.length) return;
-    }
-    const traced=rows.filter(r=>r.origin==='source').length;
-    const body=rows.map(r=>`<tr>
-        <td class="col"><span class="dot" style="background:${typeColor(r.colType)}"></span> ${esc(r.column)}
-            ${r.colType==='Calculated Column'?'<span class="calc"> · calc</span>':''}</td>
-        <td class="dtype">${esc(r.dataType||'—')}</td>
-        <td><span class="origin ${r.origin}">${esc(r.origin)}</span></td>
-        <td class="arr">→</td>
-        <td>${sourceCell(r)}</td></tr>`).join('');
-    html+=`<div class="card">
-      <div class="hd"><span class="dot" style="background:${typeColor('Table')}"></span>${esc(tn)}
-        <span class="chip">${rows.length} column${rows.length!==1?'s':''} · ${traced} from source</span></div>
-      <div class="bd">
-        <table class="smap"><colgroup><col style="width:30%"><col style="width:13%"><col style="width:14%"><col style="width:28px"><col></colgroup>
-          <thead><tr><th>Model column</th><th>Data type</th><th>Origin</th><th></th><th>Physical source</th></tr></thead>
-          <tbody>${body}</tbody></table>
-      </div></div>`;
-  });
-  document.getElementById('sourcemapWrap').innerHTML=html||'<div class="empty">No columns match.</div>';
-  wireCollapsible('sourcemapWrap', !!q);
+  const q=(document.getElementById('qr').value||'').toLowerCase();
+  const rels=RELATIONSHIPS.filter(r=>!q ||
+    (r.fromTable+' '+r.fromColumn+' '+r.toTable+' '+r.toColumn+' '+r.cardinality)
+      .toLowerCase().includes(q));
+  if(!rels.length){ wrap.innerHTML='<div class="empty">No relationships match.</div>'; return; }
+  const body=rels.map(r=>{
+    const xf=r.crossFilter==='Both'
+      ? '<span class="xf both">⇄ Both</span>'
+      : '<span class="xf single">→ Single</span>';
+    const arrow=r.crossFilter==='Both'?'⇄':'→';
+    const inactive=r.active?'':'<span class="relinactive" title="Inactive relationship">inactive</span>';
+    return `<tr>
+      <td class="relcell">${relCell(r.fromTable,r.fromColumn)}${inactive}</td>
+      <td class="arr">→</td>
+      <td class="relcell">${relCell(r.toTable,r.toColumn)}</td>
+      <td class="cardcell"><span class="relcard">${esc(r.cardinality)}</span></td>
+      <td class="xfcell">${xf}</td>
+      <td class="flow">${relTag(r.filterFrom)}<span class="flowarr">${arrow}</span>${relTag(r.filterTo)}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div class="card">
+    <div class="hd"><span class="dot" style="background:${typeColor('Table')}"></span>Relationships
+      <span class="chip">${rels.length} of ${RELATIONSHIPS.length}</span></div>
+    <div class="bd nopad"><table class="reltable">
+      <colgroup><col class="c-from"><col class="c-arr"><col class="c-to"><col class="c-card"><col class="c-xf"><col class="c-flow"></colgroup>
+      <thead><tr><th>From · column</th><th></th><th>To · column</th>
+        <th>Cardinality</th><th>Cross-filter</th><th>Filter flow</th></tr></thead>
+      <tbody>${body}</tbody></table></div></div>`;
+}
+const daxItems=kind=>kind==='calccol'?CALCCOLUMNS:MEASURES;
+function renderDaxExpr(){
+  const kind=document.getElementById('daxkind').value;
+  const items=daxItems(kind);
+  const it=items[+document.getElementById('daxitem').value];
+  const box=document.getElementById('daxexpr');
+  if(!it){box.innerHTML='<div class="empty">This model has no '
+    +(kind==='calccol'?'calculated columns':'DAX measures')+'.</div>';return;}
+  const kindLabel=kind==='calccol'?'Calculated Column':'Measure';
+  const dot=typeColor(kind==='calccol'?'Calculated Column':'Measure');
+  box.innerHTML=`<div class="card">
+    <div class="hd"><span class="dot" style="background:${dot}"></span>${esc(it.table)}[${esc(it.name)}]
+      <span class="chip">${kindLabel}</span></div>
+    <div class="bd"><pre class="dax">${esc(it.expr||'(no expression captured)')}</pre></div></div>`;
+}
+function fillDaxItems(){
+  const kind=document.getElementById('daxkind').value;
+  const items=daxItems(kind);
+  document.getElementById('daxitemlabel').textContent=kind==='calccol'?'Calculated column':'Measure';
+  const sel=document.getElementById('daxitem');
+  sel.innerHTML=items.map((it,i)=>`<option value="${i}">${esc(it.table)}[${esc(it.name)}]</option>`).join('')
+    || '<option value="">(none in this model)</option>';
+  renderDaxExpr();
+}
+function buildSourceMap(){            /* now drives the DAX tab */
+  buildExpressions();
+  const k=document.getElementById('daxkind'); if(!k) return;
+  k.onchange=fillDaxItems;
+  document.getElementById('daxitem').onchange=renderDaxExpr;
+  fillDaxItems();
 }
 
 /* ---------- Security (RLS) ---------- */
@@ -826,9 +919,37 @@ const VLMODES={
   full:{dir:null,types:null,hint:'Every source → table → measure → visual. Use the other tabs to isolate one thread.'},
   visual:{dir:'up',types:['Visual','Page'],hint:'Pick a visual or page to light up everything upstream that feeds it.'},
   source:{dir:'down',types:['Source'],hint:'Pick a data source to light up everything downstream it feeds.'},
-  impact:{dir:'down',types:null,hint:'Pick any object to see its full downstream impact — what breaks if you change it.'},
+  bookmarks:{bookmarks:true,hint:'Every bookmark in this report and the visuals it applies to (and whether it shows or hides each).'},
   column:{dir:'down',types:['Column','Calculated Column'],hint:'Pick a column to see every measure and visual it flows into.'}
 };
+function renderBookmarks(){
+  const wrap=document.getElementById('vlwrap');
+  if(!BOOKMARKS||!BOOKMARKS.length){
+    wrap.innerHTML='<div class="empty">This report has no bookmarks. '
+      +'Bookmarks live in the report\'s <code>definition/bookmarks/</code> folder — '
+      +'add some in Power BI (View → Bookmarks) and re-run.</div>';
+    return;
+  }
+  const stateBadge=s=>s==='hidden'
+    ?'<span class="bmbadge hide">hidden</span>'
+    :'<span class="bmbadge show">shown</span>';
+  const cards=BOOKMARKS.map(b=>{
+    const vis=(b.visuals||[]).map(v=>
+      `<li><span class="bmv">${esc(v.type)}</span>`
+      +`<span class="muted"> · ${esc(v.page||'—')}</span> ${stateBadge(v.state)}</li>`).join('')
+      || '<li class="muted">No visuals captured.</li>';
+    const scope=b.applyToAll
+      ? '<span class="bmscope all">all visuals</span>'
+      : `<span class="bmscope sel">selected visuals (${(b.visuals||[]).length})</span>`;
+    const grp=b.group?`<span class="k bmgrp">📁 ${esc(b.group)}</span>`:'';
+    const pg=b.page?`<span class="k">📄 ${esc(b.page)}</span>`:'';
+    return `<div class="bmcard">
+      <div class="bmhdr"><b class="bmname">🔖 ${esc(b.displayName)}</b>${grp}${pg}${scope}</div>
+      <ul class="bmlist">${vis}</ul></div>`;
+  }).join('');
+  wrap.innerHTML=`<div class="bmcount">${BOOKMARKS.length} bookmark${BOOKMARKS.length===1?'':'s'} in this report</div>`
+    +`<div class="bmgrid">${cards}</div>`;
+}
 function vlTrace(anchorId,dir){
   const adj=dir==='up'?bak:fwd, seen=new Set([anchorId]), st=[anchorId];
   while(st.length){const x=st.pop();(adj[x]||[]).forEach(e=>{if(!seen.has(e.id)){seen.add(e.id);st.push(e.id);}});}
@@ -849,7 +970,10 @@ function vlClickNode(sid){
 }
 function vlFillAnchor(){
   const m=VLMODES[vlMode], sel=document.getElementById('vlanchor');
+  const legend=document.querySelector('.vllegend');
   document.getElementById('vlhint').textContent=m.hint;
+  if(m.bookmarks){sel.style.display='none'; if(legend)legend.style.display='none'; renderBookmarks(); return;}
+  if(legend)legend.style.display='';
   if(!m.types){sel.style.display='none'; VL.render(null); return;}
   sel.style.display='';
   const opts=NODES.filter(n=>m.types.includes(n.type))
@@ -874,11 +998,11 @@ document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{
   document.getElementById('view-'+tab.dataset.view).classList.add('active');
 });
 document.getElementById('qt').addEventListener('input',buildTables);
-document.getElementById('qs').addEventListener('input',buildSourceMap);
+document.getElementById('qr').addEventListener('input',buildDataModel);
 document.getElementById('qv').addEventListener('input',buildVisuals);
 ['q','ftype'].forEach(id=>document.getElementById(id).addEventListener('input',renderList));
 document.getElementById('orphans').addEventListener('change',renderList);
-cards();fillTypes();buildTables();buildSourceMap();buildVisuals();buildSecurity();buildVisualLineage();renderList();defaultSelect();
+cards();fillTypes();buildTables();buildDataModel();buildSourceMap();buildVisuals();buildSecurity();buildVisualLineage();renderList();defaultSelect();
 (function(){var r=document.documentElement,b=document.getElementById('themebtn');if(!b)return;
   function p(){var d=r.getAttribute('data-theme')==='dark';b.querySelector('.ico').textContent=d?'☀️':'🌙';b.querySelector('.lbl').textContent=d?'Light':'Dark';}
   p();b.onclick=function(){var n=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',n);try{localStorage.setItem('pbai-theme',n);}catch(e){}p();};})();

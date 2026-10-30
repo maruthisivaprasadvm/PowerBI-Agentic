@@ -6,11 +6,11 @@
 
   const AGENTS = [
     { agent:'lineage', icon:'🔗', cls:'lineage', title:'Data Lineage',
-      desc:'Source → table → column → measure → visual → page, both directions. Column source map, visual lineage, calc groups, field parameters & RLS.' },
+      desc:'Full lineage, source → visual.' },
     { agent:'unused', icon:'🧹', cls:'unused', title:'Unused Artifacts',
-      desc:'Measures, columns, calculated columns/tables, hierarchies and relationships not used by any visual or object — your safe-to-delete list.' },
+      desc:'Unused fields safe to delete.' },
     { agent:'bpa', icon:'✓', cls:'bpa', title:'Best Practice Analyzer',
-      desc:'Scans the model against the Tabular Editor best-practice rules — naming, DAX, relationships, formatting, performance. Full rule set.' },
+      desc:'Model checked against best-practice rules.' },
   ];
 
   let chosen = [];          // [{path, file}]
@@ -53,11 +53,8 @@
   const fromInput = list => [...list].map(f=>({path:(f.webkitRelativePath||f.name), file:f}));
 
   $('pickFolder').onclick=()=>$('folder').click();
-  $('pickZip').onclick=()=>$('zip').click();
   $('folder').onchange=()=>{ const f=fromInput($('folder').files);
     if(f.length) setChosen(f, 'PBIP folder ('+(f[0].path.split('/')[0]||'folder')+')'); };
-  $('zip').onchange=()=>{ const f=fromInput($('zip').files);
-    if(f.length) setChosen(f, f[0].file.name); };
 
   const dz=$('drop');
   ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('drag');}));
@@ -133,8 +130,8 @@
     if(agent==='lineage') line=`${s.nodes||0} nodes · ${s.edges||0} edges · ${s.visuals||0} visuals`;
     else if(agent==='unused') line=`${s.totalScanned||0} scanned · ${s.totalUnused||0} unused`;
     else if(agent==='bpa') line=`${s.total||0} rules · ${s.passed||0} passed · ${s.failed||0} failed`;
-    card.innerHTML=`<div style="margin-top:8px"><span class="pill ok">done</span> ${esc(line)}
-      <div style="margin-top:6px"><a class="rep" href="#" >Open report ↗</a></div></div>`;
+    card.innerHTML=`<div class="rez"><span class="pill ok">done</span> ${esc(line)}
+      · <a class="rep" href="#">Open report ↗</a></div>`;
     card.querySelector('.rep').onclick=(ev)=>{ev.preventDefault();openReport(res.html,res.filename);};
   }
 

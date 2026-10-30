@@ -192,6 +192,150 @@ def parse_report(pbix_path):
     return visuals
 
 
+def _bm_visual_state(container):
+    """Best-effort read of how a bookmark changes a visual: 'hidden' when the captured
+    state hides it, else 'shown'. PBIR stores visibility under a `display`/`mode` key
+    whose exact nesting varies by version, so search the container recursively."""
+    hidden = False
+    def walk(o):
+        nonlocal hidden
+        if isinstance(o, dict):
+            for k, v in o.items():
+                kl = k.lower()
+                if kl in ("mode", "displaymode") and isinstance(v, str) and "hid" in v.lower():
+                    hidden = True
+                if kl == "visible" and v is False:
+                    hidden = True
+                walk(v)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x)
+    walk(container)
+    return "hidden" if hidden else "shown"
+
+
+def parse_bookmarks(pbix_path):
+    """Return the report's bookmarks and which visuals each applies to:
+        [{name, displayName, page, group, applyToAll, visuals:[{id,type,page,state}]}]
+    Reads the PBIR `definition/bookmarks/` folder (index + per-bookmark files). Returns
+    [] for legacy .pbix or reports with no bookmarks."""
+    entries = _report_entries(pbix_path)
+    if not entries:
+        return []
+    data = {n: b for n, b in entries}
+
+    # page folder -> display name, and visual guid -> {type, pageFolder}
+    pagename, vmeta = {}, {}
+    for n in data:
+        mp = re.search(r"definition/pages/([^/]+)/page\.json$", n)
+        if mp:
+            try:
+                pagename[mp.group(1)] = json.loads(
+                    data[n].decode("utf-8-sig")).get("displayName", mp.group(1))
+            except ValueError:
+                pagename[mp.group(1)] = mp.group(1)
+        mv = re.search(r"definition/pages/([^/]+)/visuals/([^/]+)/visual\.json$", n)
+        if mv:
+            folder, vid = mv.group(1), mv.group(2)
+            try:
+                vj = json.loads(data[n].decode("utf-8-sig"))
+                vtype = (vj.get("visual") or {}).get("visualType") or "visual"
+            except ValueError:
+                vtype = "visual"
+            vmeta[vid] = {"type": vtype, "page": folder}
+
+    def vis_entry(vid, page_folder):
+        meta = vmeta.get(vid, {})
+        folder = meta.get("page", page_folder)
+        return {"id": vid, "type": meta.get("type", "visual"),
+                "page": pagename.get(folder, folder)}
+
+    # index file gives display order + group membership (optional)
+    group_of = {}
+    index = None
+    for n in data:
+        if re.search(r"definition/bookmarks/bookmarks\.json$", n):
+            try:
+                index = json.loads(data[n].decode("utf-8-sig"))
+            except ValueError:
+                index = None
+            break
+    if index:
+        for item in index.get("items", []):
+            children = item.get("children")
+            if children:
+                gname = item.get("displayName") or item.get("name")
+                for ch in children:
+                    cn = ch if isinstance(ch, str) else (ch.get("name") or ch.get("bookmark"))
+                    if cn:
+                        group_of[cn] = gname
+
+    bookmarks = []
+    for n in sorted(data):
+        if not re.search(r"definition/bookmarks/.+\.bookmark\.json$", n):
+            continue
+        try:
+            bj = json.loads(data[n].decode("utf-8-sig"))
+        except ValueError:
+            continue
+        name = bj.get("name") or Path(n).name
+        state = bj.get("explorationState") or {}
+        sections = state.get("sections") or {}
+        active = state.get("activeSection") or next(iter(sections), None)
+        opts = bj.get("options") or {}
+        apply_only = bool(opts.get("applyOnlyToTargetVisuals"))
+        targets = opts.get("targetVisualNames") or []
+
+        # collect per-visual captured state across every section the bookmark touches
+        captured = {}   # vid -> (page_folder, state)
+        for folder, sec in sections.items():
+            for vid, cont in (sec.get("visualContainers") or {}).items():
+                captured[vid] = (folder, _bm_visual_state(cont))
+
+        if apply_only and targets:
+            affected = [(v, captured.get(v, (active, "shown"))) for v in targets]
+        else:
+            affected = [(v, (f, s)) for v, (f, s) in captured.items()]
+            if not affected:            # no captured visuals -> treat targets as affected
+                affected = [(v, (active, "shown")) for v in targets]
+
+        vis = []
+        for vid, (folder, st) in affected:
+            e = vis_entry(vid, folder)
+            e["state"] = st
+            vis.append(e)
+        vis.sort(key=lambda x: (x["page"].lower(), x["type"].lower(), x["id"]))
+
+        bookmarks.append({
+            "name": name,
+            "displayName": bj.get("displayName") or name,
+            "page": pagename.get(active, active) if active else None,
+            "group": group_of.get(name),
+            "applyToAll": not (apply_only and targets),
+            "visuals": vis,
+        })
+
+    # order by the index when available, else by display name
+    if index:
+        order = {}
+        i = 0
+        def flatten(items):
+            nonlocal i
+            for it in items:
+                ch = it.get("children")
+                if ch:
+                    flatten(ch)
+                else:
+                    nm = it.get("name") or (it if isinstance(it, str) else None)
+                    if nm:
+                        order[nm] = i; i += 1
+        flatten(index.get("items", []))
+        bookmarks.sort(key=lambda b: order.get(b["name"], 10**6))
+    else:
+        bookmarks.sort(key=lambda b: b["displayName"].lower())
+    return bookmarks
+
+
 # --------------------------------------------------------------------- source (M) parser
 def _source_label(qdef):
     """Short data-source label for the Source node (e.g. 'SQL · server / DB')."""
@@ -462,6 +606,7 @@ def build(tmschema_path, pbix_path):
         else:
             val = (e.get("Expression") or "").split(" meta ")[0].strip().strip('"')
             expr_display.append({"name": e["Name"], "kind": "parameter", "value": val})
+    bookmarks = parse_bookmarks(pbix_path) if pbix_path else []
     stats = {"byType": by_type, "nodes": len(nodes), "edges": len(uedges),
              "pages": len(pages), "visuals": sum(1 for n in nodes.values() if n["type"] == "Visual"),
              "orphanCount": len(orphans),
@@ -469,9 +614,47 @@ def build(tmschema_path, pbix_path):
              "roles": len(roles),
              "calcGroups": sum(1 for t in tables.values() if t.get("CalculationGroupID")),
              "fieldParams": len(field_params),
+             "bookmarks": len(bookmarks),
              "expressions": len(expr_display)}
+    # DAX library: measures + calculated columns with their expressions (for the DAX tab)
+    measures_out = sorted(
+        ({"table": m["table"], "name": m["name"], "expr": m["expr"]} for m in meas),
+        key=lambda x: (x["table"].lower(), (x["name"] or "").lower()))
+    calccols_out = []
+    for c in _rows(d, "columns"):
+        if c.get("Type") == 2 and c.get("Expression"):
+            tname = tables.get(c["TableID"], {}).get("Name", "?")
+            calccols_out.append({"table": tname,
+                                 "name": c.get("ExplicitName") or c.get("InferredName") or "?",
+                                 "expr": c.get("Expression")})
+    calccols_out.sort(key=lambda x: (x["table"].lower(), x["name"].lower()))
+
+    # relationships for the Data Model tab (cardinality + cross-filter direction)
+    col_name_by_id = {c["ID"]: (c.get("ExplicitName") or c.get("InferredName") or "?")
+                      for c in _rows(d, "columns")}
+    card_name = {1: "One", 2: "Many"}
+    relationships_out = []
+    for r in _rows(d, "relationships"):
+        ft = tables.get(r.get("FromTableID"), {}).get("Name") or r.get("FromTableID")
+        tt = tables.get(r.get("ToTableID"), {}).get("Name") or r.get("ToTableID")
+        fcard = r.get("FromCardinality", 2)
+        tcard = r.get("ToCardinality", 1)
+        both = r.get("CrossFilteringBehavior") == 2
+        relationships_out.append({
+            "fromTable": ft, "fromColumn": col_name_by_id.get(r.get("FromColumnID"), "?"),
+            "toTable": tt, "toColumn": col_name_by_id.get(r.get("ToColumnID"), "?"),
+            "cardinality": f"{card_name.get(fcard, '?')}-to-{card_name.get(tcard, '?')}",
+            "crossFilter": "Both" if both else "Single",
+            # single-direction filters flow from the one-side (To) to the many-side (From)
+            "filterFrom": tt, "filterTo": ft,
+            "active": bool(r.get("IsActive", True)),
+        })
+    relationships_out.sort(key=lambda x: (x["fromTable"].lower(), x["toTable"].lower()))
+
     extras = {"roles": roles, "calcItems": calc_items, "fieldParams": field_params,
-              "expressions": expr_display}
+              "expressions": expr_display, "bookmarks": bookmarks,
+              "measures": measures_out, "calcColumns": calccols_out,
+              "relationships": relationships_out}
     return list(nodes.values()), uedges, stats, sourcemap, extras
 
 
@@ -490,6 +673,10 @@ def render(nodes, edges, stats, sourcemap, extras, model_name, pbix_name, out_pa
         "{{CALCITEMS_JSON}}": json.dumps(extras.get("calcItems", []), ensure_ascii=False),
         "{{FIELDPARAMS_JSON}}": json.dumps(extras.get("fieldParams", []), ensure_ascii=False),
         "{{EXPRESSIONS_JSON}}": json.dumps(extras.get("expressions", []), ensure_ascii=False),
+        "{{BOOKMARKS_JSON}}": json.dumps(extras.get("bookmarks", []), ensure_ascii=False),
+        "{{MEASURES_JSON}}": json.dumps(extras.get("measures", []), ensure_ascii=False),
+        "{{CALCCOLUMNS_JSON}}": json.dumps(extras.get("calcColumns", []), ensure_ascii=False),
+        "{{RELATIONSHIPS_JSON}}": json.dumps(extras.get("relationships", []), ensure_ascii=False),
     }.items():
         html = html.replace(k, v)
     if out_path is None:
