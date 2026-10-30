@@ -27,11 +27,24 @@ CDN; your Power BI files never leave the page.)
 
 ### Run the online app locally
 
-```
-serve_web.bat                 # Windows: regenerates manifest.json, then serves http://127.0.0.1:8777
+**Prerequisites**
+
+- **Git** — to clone the repo.
+- **Python 3** (3.9+) — used only as a static file server (`python --version` should work).
+- A modern **browser** — **Chrome or Edge** give the best folder picker; Firefox also reads folders; on Safari, zip the PBIP and choose the `.zip`.
+- A **Power BI Project (`.pbip`)** of your own to analyse — no sample ships with the repo. (In Power BI Desktop: **File → Save as → Power BI Project (.pbip)**.)
+
+No build tools, Node, or backend are needed — it's a pure static site.
+
+**Clone and serve** (Windows / PowerShell):
+
+```powershell
+git clone https://github.com/maruthisivaprasadvm/PowerBI-Agentic.git
+cd PowerBI-Agentic
+./serve_web.bat               # regenerates manifest.json, then serves http://127.0.0.1:8777
 ```
 
-or any static server from the repo root:
+or any static server from the repo root (any OS):
 
 ```
 python build_web.py           # (re)write manifest.json — only needed if the parser file list changes
@@ -39,7 +52,8 @@ python -m http.server 8777    # then open http://127.0.0.1:8777
 ```
 
 A static server is required — opening `index.html` as a `file://` won't work (the browser blocks
-`fetch()` of the local assets).
+`fetch()` of the local assets). On the **first** agent run the browser downloads the Pyodide runtime
+(~10 MB) once from a CDN; after that everything runs in-page.
 
 ---
 
