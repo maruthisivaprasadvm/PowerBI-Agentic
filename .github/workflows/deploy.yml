@@ -37,10 +37,8 @@ jobs:
       - name: Regenerate manifest.json (parser/template/rule file list)
         run: python build_web.py
 
-      - name: Configure Pages (enables Pages on first run)
+      - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload the site (the whole repo root is the site)
         uses: actions/upload-pages-artifact@v3
