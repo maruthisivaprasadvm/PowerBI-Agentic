@@ -14,6 +14,31 @@ Each report is a **self-contained HTML file** you can download and share.
 
 ---
 
+## Screenshots
+
+Pick a PBIP folder and run an agent — everything happens in your browser:
+
+![Power BI Agentic — the app](docs/screenshot-home.png)
+
+The three agents, run against the bundled **Contoso** sample model:
+
+**🔗 Data Lineage** — Tables & Columns, the DAX library, the data model (relationships &
+cross-filter), visual lineage and RLS:
+
+![Data Lineage report](docs/screenshot-lineage.png)
+
+**🧹 Unused Artifacts** — a safe-to-delete list across measures, columns, calculated
+columns/tables and relationships:
+
+![Unused Artifacts report](docs/screenshot-unused.png)
+
+**✓ Best Practice Analyzer** — the model scored against the Tabular Editor best-practice rules,
+grouped by category and severity:
+
+![Best Practice Analyzer report](docs/screenshot-bpa.png)
+
+---
+
 ## Use it online
 
 The whole app is static and served from the repo root, so deploying it is **zero-config**:
