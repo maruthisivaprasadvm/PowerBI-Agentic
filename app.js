@@ -47,8 +47,15 @@
     if(!files.length){ box.hidden=true; return; }
     box.hidden=false;
     const names = files.slice(0,6).map(f=>f.path).join('  ·  ');
+    // The agents need the data model (model.tmdl, inside the *.SemanticModel folder).
+    // Warn early if the selection has no model — e.g. only the .Report folder was picked.
+    const hasModel = files.some(f=>/\.tmdl$/i.test(f.path));
+    const warn = hasModel ? '' :
+      `<div class="warn">⚠ <b>No data model found in this folder.</b> Pick the
+       <b>Power BI Project folder</b> that contains the <b>*.SemanticModel</b> folder
+       (the one with <code>model.tmdl</code>). Selecting only the <b>.Report</b> folder won't work.</div>`;
     box.innerHTML = `<b>Selected:</b> ${esc(label)} <span class="pill ok">${files.length} file${files.length!==1?'s':''}</span>
-      <div class="files">${esc(names)}${files.length>6?'  … (+'+(files.length-6)+' more)':''}</div>`;
+      <div class="files">${esc(names)}${files.length>6?'  … (+'+(files.length-6)+' more)':''}</div>${warn}`;
   }
   const fromInput = list => [...list].map(f=>({path:(f.webkitRelativePath||f.name), file:f}));
 
@@ -79,13 +86,18 @@
       status('Loading the Python runtime (first run only, ~10&nbsp;MB)…', true);
       const py=await loadPyodide();
       status('Loading the analysis agents…', true);
-      const manifest=await (await fetch('manifest.json')).json();
-      // fetch every parser/template/rule file in parallel, then write to the in-memory FS
-      const files=await Promise.all(manifest.map(async rel=>
-        ({rel, buf:new Uint8Array(await (await fetch(rel)).arrayBuffer())})));
-      for(const {rel,buf} of files){
+      // Parsers/templates/rules are inlined in py-bundle.js (window.PBIP_FILES) and written
+      // straight into Pyodide's filesystem — the app never fetches .py files, so corporate
+      // proxies that block .py downloads (e.g. Zscaler → HTTP 403) can't break it.
+      const files=window.PBIP_FILES;
+      if(!files || !Object.keys(files).length){
+        throw new Error('Could not load the analysis code (py-bundle.js missing or empty). '
+          +'If you are self-hosting, run “python build_web.py” to regenerate it.');
+      }
+      const enc=new TextEncoder();
+      for(const rel of Object.keys(files)){
         const dest='/app/'+rel, dir=dest.slice(0,dest.lastIndexOf('/'));
-        py.FS.mkdirTree(dir); py.FS.writeFile(dest, buf);
+        py.FS.mkdirTree(dir); py.FS.writeFile(dest, enc.encode(files[rel]));
       }
       py.runPython("import sys\n[sys.path.insert(0,p) for p in ('/app','/app/scripts') if p not in sys.path]");
       return py;
