@@ -78,7 +78,7 @@ cd PowerBI-Agentic
 python -m http.server 8777    # then open http://127.0.0.1:8777
 ```
 
-On Windows you can also just run `serve_web.bat`. (A static server is required — opening
+On Windows you can also just run `tools\serve_web.bat`. (A static server is required — opening
 `index.html` directly as a `file://` won't work.)
 
 ---

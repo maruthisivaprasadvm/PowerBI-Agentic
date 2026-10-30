@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build the online app manifest (must match the repo files)
-        run: python build_web.py
+      - name: Build the online app bundle (must match the repo files)
+        run: python tools/build_web.py
 
       - name: Smoke-test the parsers against the sample PBIP
         run: |
