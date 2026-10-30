@@ -1,127 +1,86 @@
-# Power BI Agentic
+# 🔗 Power BI Agentic
 
-**Read a Power BI model in your browser.** Pick a **Power BI Project (PBIP)** folder — or a `.zip`
-of it — and run an agent. Everything runs **client-side in the browser** (Python compiled to
-WebAssembly via [Pyodide](https://pyodide.org)); **nothing is uploaded** to any server.
+**Understand any Power BI model in your browser — no install, nothing uploaded.**
 
-| Agent | What it does | Output |
-|---|---|---|
-| 🔗 **Data Lineage** | Source → table → column → measure → visual → page, both directions. Column source map, visual lineage, calc groups, field parameters & RLS. | Interactive HTML explorer |
-| 🧹 **Unused Artifacts** | Measures, columns, calculated columns/tables, hierarchies and relationships used by no visual or object — your safe-to-delete list. | HTML dashboard |
-| ✓ **Best Practice Analyzer** | The model scanned against the [TabularEditor best-practice rules](https://github.com/TabularEditor/BestPracticeRules) — naming, DAX, relationships, formatting, performance. | Pass/fail HTML dashboard |
+## 👉 Open the app: **https://maruthisivaprasadvm.github.io/PowerBI-Agentic/**
 
-Each report is a **self-contained HTML file** you can download and share.
+Pick your Power BI project and get instant, shareable reports on your model's **lineage**,
+**unused fields**, and **best‑practice issues**. Everything runs inside your own browser —
+your data never leaves your computer.
+
+---
+
+## How to use it — 3 steps
+
+1. **Open the app** → [maruthisivaprasadvm.github.io/PowerBI-Agentic](https://maruthisivaprasadvm.github.io/PowerBI-Agentic/) *(Chrome or Edge work best).*
+2. **Choose your model** → click **📂 Choose PBIP folder…** and select your **Power BI Project (`.pbip`)** folder — or drag‑and‑drop a `.zip` of it.
+3. **Run an agent** → click **Run** on any of the three. The report opens in a new tab; download or share it.
+
+> 💡 No `.pbip` yet? In **Power BI Desktop → File → Save as → Power BI Project (.pbip)**.
+> The first run downloads a small runtime (~10 MB, one time); after that it's instant.
+
+---
+
+## What you get
+
+| Agent | What it tells you |
+|---|---|
+| 🔗 **Data Lineage** | How everything connects — source → table → column → measure → visual → page. Plus the **data model** (relationships & cross‑filter), a **DAX** browser, and security roles (RLS). |
+| 🧹 **Unused Artifacts** | Measures, columns, tables and relationships that **nothing uses** — your safe‑to‑delete list. |
+| ✓ **Best Practice Analyzer** | Your model graded against industry **best‑practice rules** — naming, DAX, relationships, formatting, performance. |
+
+Each report is a **single, self‑contained HTML file** you can download and share.
+
+---
+
+## 🔒 Your data stays private
+
+**Nothing is uploaded.** Your Power BI files are read and analysed **entirely inside your browser**.
+There is no server and no network call with your data — close the tab and nothing remains.
 
 ---
 
 ## Screenshots
 
-Pick a PBIP folder and run an agent — everything happens in your browser:
+**The app** — pick a project and run an agent:
 
 ![Power BI Agentic — the app](docs/screenshot-home.png)
 
-The three agents, run against the bundled **Contoso** sample model:
-
-**🔗 Data Lineage** — Tables & Columns, the DAX library, the data model (relationships &
-cross-filter), visual lineage and RLS:
+**🔗 Data Lineage**
 
 ![Data Lineage report](docs/screenshot-lineage.png)
 
-**🧹 Unused Artifacts** — a safe-to-delete list across measures, columns, calculated
-columns/tables and relationships:
+**🧹 Unused Artifacts**
 
 ![Unused Artifacts report](docs/screenshot-unused.png)
 
-**✓ Best Practice Analyzer** — the model scored against the Tabular Editor best-practice rules,
-grouped by category and severity:
+**✓ Best Practice Analyzer**
 
 ![Best Practice Analyzer report](docs/screenshot-bpa.png)
 
 ---
 
-## Use it online
+## Good to know
 
-The whole app is static and served from the repo root, so deploying it is **zero-config**:
+- **Supported input:** Power BI **Projects (`.pbip` / TMDL)** — a folder or a `.zip`.
+- **Not supported:** binary **`.pbix`** files — a browser can't read them. Save as `.pbip` first (one‑time, in Power BI Desktop).
+- **Best experience:** Chrome or Edge (best folder picker). Firefox also reads folders; on Safari, zip the project and choose the `.zip`.
 
-1. Push this repo to GitHub.
-2. **Settings → Pages → Build and deployment → Source: *Deploy from a branch* → `main` / `/ (root)`.**
-3. Open `https://<your-user>.github.io/<repo>/` — done. Users just visit the URL and run an agent.
+---
 
-No build step, no Action, no server. (The only network fetch is the one-time Pyodide runtime from a
-CDN; your Power BI files never leave the page.)
+## Run it on your own computer (optional)
 
-### Run the online app locally
+You only need **Git**, **Python 3**, and a browser — it's a pure static site (no build, no server, no Node).
 
-**Prerequisites**
-
-- **Git** — to clone the repo.
-- **Python 3** (3.9+) — used only as a static file server (`python --version` should work).
-- A modern **browser** — **Chrome or Edge** give the best folder picker; Firefox also reads folders; on Safari, zip the PBIP and choose the `.zip`.
-- A **Power BI Project (`.pbip`)** of your own to analyse — no sample ships with the repo. (In Power BI Desktop: **File → Save as → Power BI Project (.pbip)**.)
-
-No build tools, Node, or backend are needed — it's a pure static site.
-
-**Clone and serve** (Windows / PowerShell):
-
-```powershell
+```bash
 git clone https://github.com/maruthisivaprasadvm/PowerBI-Agentic.git
 cd PowerBI-Agentic
-./serve_web.bat               # regenerates manifest.json, then serves http://127.0.0.1:8777
-```
-
-or any static server from the repo root (any OS):
-
-```
-python build_web.py           # (re)write manifest.json — only needed if the parser file list changes
 python -m http.server 8777    # then open http://127.0.0.1:8777
 ```
 
-A static server is required — opening `index.html` as a `file://` won't work (the browser blocks
-`fetch()` of the local assets). On the **first** agent run the browser downloads the Pyodide runtime
-(~10 MB) once from a CDN; after that everything runs in-page.
+On Windows you can also just run `serve_web.bat`. (A static server is required — opening
+`index.html` directly as a `file://` won't work.)
 
 ---
 
-## What's supported in the browser
-
-| Input | Model | Report layer (visuals) |
-|---|---|---|
-| **PBIP / TMDL** (folder or `.zip`) | ✅ full | ✅ (from the project's `*.Report`) |
-| Binary **`.pbix`** | ❌ not in a browser¹ | — |
-
-¹ A `.pbix` stores its model as a binary VertiPaq image that only the Power BI engine can open, so a
-browser cannot read it. In Power BI Desktop use **File → Save as → Power BI Project (.pbip)** once to
-unlock a fully offline, browser-readable project. (This is the same constraint as every browser-only
-Power BI lineage tool.)
-
-Chrome and Edge give the best **folder picker**; Firefox also reads folders; on Safari, zip the PBIP
-project and choose the `.zip`.
-
----
-
-## 🔒 Privacy
-
-**Nothing is uploaded.** Your files are read in the page and parsed in WebAssembly in your browser.
-There is no server and no network call with your data — close the tab and nothing remains.
-
----
-
-## What's in the box
-
-| Path | Purpose |
-|---|---|
-| [`index.html`](index.html) · [`app.js`](app.js) · [`style.css`](style.css) | The static online app (Power BI glass UI, iA Writer fonts). |
-| [`pyagent.py`](pyagent.py) | In-browser bridge: writes the picked files into Pyodide and runs an agent. |
-| [`manifest.json`](manifest.json) | The list of parser/template/rule files the browser fetches (regenerated by `build_web.py`). |
-| [`scripts/`](scripts/) | The standard-library-only parsers run in the browser: TMDL loader, M-query parser, lineage, unused-artifacts, BPA. |
-| [`templates/`](templates/) | Self-contained HTML report templates. |
-| [`rules/`](rules/) | Best-Practice rule sets (PowerBI · standard · custom-extended · measurekiller). |
-| [`samples/Contoso.SemanticModel/`](samples/) | A small PBIP fixture used by CI and demos. |
-
-The parsers in [`scripts/`](scripts/) are **pure Python standard library** — that's what lets them run
-unchanged in the browser via Pyodide.
-
-[`ci`](.github/workflows/ci.yml) smoke-tests the parsers against the sample PBIP on every push.
-Generated reports (`output/`) are git-ignored — they embed a full copy of the model.
-
-Licensed **MIT** (see [`LICENSE`](LICENSE)).
+Made by **[Maruthi Siva Prasad VM](https://www.cloudbiexpert.com/)** · [LinkedIn](https://www.linkedin.com/in/maruthi-siva-prasad/) — licensed **MIT**.
